@@ -1,1 +1,1355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roblox Outfit Viewer</title>
 
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #0f1014;
+    color: #ffffff;
+}
+
+button, input, textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+header {
+    height: 70px;
+    background: #17181e;
+    border-bottom: 1px solid #292b33;
+    display: flex;
+    align-items: center;
+    padding: 0 25px;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 21px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.logo span {
+    color: #8b5cf6;
+}
+
+.search {
+    flex: 1;
+    max-width: 550px;
+}
+
+.search input {
+    width: 100%;
+    background: #23252d;
+    color: white;
+    border: 1px solid #343640;
+    padding: 11px 15px;
+    border-radius: 12px;
+    outline: none;
+}
+
+.search input:focus {
+    border-color: #8b5cf6;
+}
+
+.container {
+    max-width: 1250px;
+    margin: auto;
+    padding: 30px 20px;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+h1 {
+    margin-top: 0;
+    font-size: 32px;
+}
+
+.subtitle {
+    color: #a7a9b2;
+    margin-top: -15px;
+    margin-bottom: 30px;
+}
+
+.btn {
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 17px;
+    background: #8b5cf6;
+    color: white;
+    font-weight: 700;
+}
+
+.btn:hover {
+    filter: brightness(1.1);
+}
+
+.btn.secondary {
+    background: #292b34;
+}
+
+.btn.danger {
+    background: #dc2626;
+}
+
+.btn.small {
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 16px;
+}
+
+.folder {
+    background: #191a20;
+    border: 1px solid #292b33;
+    border-radius: 15px;
+    padding: 20px;
+    min-height: 145px;
+    transition: .15s;
+}
+
+.folder:hover {
+    border-color: #8b5cf6;
+    transform: translateY(-2px);
+}
+
+.folder-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+}
+
+.folder-name {
+    font-weight: 700;
+    font-size: 17px;
+}
+
+.folder-count {
+    color: #9699a5;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.folder-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 7px;
+}
+
+.import-box {
+    background: #18191f;
+    border: 1px solid #292b33;
+    border-radius: 17px;
+    padding: 22px;
+    margin-bottom: 30px;
+}
+
+textarea {
+    width: 100%;
+    min-height: 150px;
+    resize: vertical;
+    background: #111217;
+    border: 1px solid #333640;
+    border-radius: 12px;
+    color: white;
+    padding: 15px;
+    outline: none;
+}
+
+textarea:focus {
+    border-color: #8b5cf6;
+}
+
+.import-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 18px;
+}
+
+.item {
+    background: #18191f;
+    border: 1px solid #292b33;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+.item-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #24262e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.item-info {
+    padding: 14px;
+}
+
+.item-name {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-id {
+    color: #9295a1;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.item-actions {
+    display: flex;
+    gap: 7px;
+    margin-top: 12px;
+}
+
+.more {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+
+.more button {
+    width: 35px;
+    height: 35px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(0,0,0,.65);
+    color: white;
+    font-size: 20px;
+}
+
+.menu {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 48px;
+    width: 190px;
+    background: #24262d;
+    border: 1px solid #393b45;
+    border-radius: 12px;
+    overflow: hidden;
+    z-index: 20;
+}
+
+.menu.open {
+    display: block;
+}
+
+.menu button {
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    color: white;
+    padding: 12px;
+}
+
+.menu button:hover {
+    background: #333640;
+}
+
+.back {
+    margin-bottom: 20px;
+}
+
+.empty {
+    text-align: center;
+    color: #898c98;
+    padding: 60px 20px;
+    border: 1px dashed #363842;
+    border-radius: 15px;
+}
+
+.modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-bg.open {
+    display: flex;
+}
+
+.modal {
+    background: #1b1c22;
+    border: 1px solid #343640;
+    width: 100%;
+    max-width: 450px;
+    border-radius: 17px;
+    padding: 23px;
+}
+
+.modal h2 {
+    margin-top: 0;
+}
+
+.modal input {
+    width: 100%;
+    background: #101116;
+    border: 1px solid #363944;
+    color: white;
+    padding: 12px;
+    border-radius: 10px;
+    outline: none;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.folder-select {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.folder-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.folder-option:hover {
+    background: #292b33;
+}
+
+.folder-option input {
+    width: auto;
+}
+
+.toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    background: #24262d;
+    border: 1px solid #3a3c46;
+    padding: 13px 17px;
+    border-radius: 11px;
+    display: none;
+    z-index: 1000;
+}
+
+.toast.show {
+    display: block;
+}
+
+nav {
+    display: flex;
+    gap: 7px;
+}
+
+nav button {
+    background: transparent;
+    color: #aaa;
+    border: 0;
+    padding: 9px 11px;
+    border-radius: 9px;
+}
+
+nav button:hover,
+nav button.active {
+    color: white;
+    background: #292b33;
+}
+
+@media (max-width: 700px) {
+    header {
+        height: auto;
+        min-height: 65px;
+        flex-wrap: wrap;
+        padding: 12px;
+    }
+
+    nav {
+        order: 3;
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .search {
+        max-width: none;
+    }
+
+    h1 {
+        font-size: 26px;
+    }
+
+    .items-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .cards {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .item-info {
+        padding: 10px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">RBLX <span>Outfit Viewer</span></div>
+
+    <div class="search">
+        <input
+            type="text"
+            id="search"
+            placeholder="Rechercher un item ou un dossier..."
+            oninput="render()"
+        >
+    </div>
+
+    <nav>
+        <button id="navHome" class="active" onclick="showPage('home')">Accueil</button>
+        <button id="navItems" onclick="showPage('items')">Items</button>
+        <button id="navFolders" onclick="showPage('folders')">Dossiers</button>
+    </nav>
+</header>
+
+<main class="container">
+
+    <!-- ACCUEIL -->
+    <section id="home" class="page active">
+
+        <h1>Bienvenue</h1>
+        <p class="subtitle">
+            Gère tes vêtements, accessoires et UGC Roblox au même endroit.
+        </p>
+
+        <div class="section-title">
+            <h2>Mes dossiers</h2>
+            <button class="btn" onclick="openFolderModal()">＋ Nouveau dossier</button>
+        </div>
+
+        <div id="homeFolders" class="cards"></div>
+
+        <br><br>
+
+        <div class="section-title">
+            <h2>Ajouter des items</h2>
+        </div>
+
+        <div class="import-box">
+            <p>
+                Colle ici tes liens Roblox. Tu peux en mettre plusieurs,
+                un par ligne ou séparés par des espaces.
+            </p>
+
+            <textarea
+                id="links"
+                placeholder="https://www.roblox.com/catalog/123456789/...
+https://www.roblox.com/catalog/987654321/..."
+            ></textarea>
+
+            <div class="import-buttons">
+                <button class="btn" onclick="importItems()">
+                    Ajouter les items
+                </button>
+
+                <button class="btn secondary" onclick="document.getElementById('links').value=''">
+                    Effacer
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ITEMS -->
+    <section id="items" class="page">
+
+        <button class="btn secondary back" onclick="showPage('home')">
+            ← Retour
+        </button>
+
+        <div class="section-title">
+            <div>
+                <h1>Tous mes items</h1>
+                <p class="subtitle">Ton historique complet.</p>
+            </div>
+        </div>
+
+        <div id="itemsGrid" class="items-grid"></div>
+
+    </section>
+
+
+    <!-- DOSSIERS -->
+    <section id="folders" class="page">
+
+        <div class="section-title">
+            <div>
+                <h1>Mes dossiers</h1>
+                <p class="subtitle">Organise tes items comme des playlists.</p>
+            </div>
+
+            <button class="btn" onclick="openFolderModal()">
+                ＋ Nouveau dossier
+            </button>
+        </div>
+
+        <div id="foldersGrid" class="cards"></div>
+
+    </section>
+
+
+    <!-- CONTENU DOSSIER -->
+    <section id="folderPage" class="page">
+
+        <button class="btn secondary back" onclick="showPage('folders')">
+            ← Mes dossiers
+        </button>
+
+        <div class="section-title">
+            <div>
+                <h1 id="folderTitle"></h1>
+                <p id="folderSubtitle" class="subtitle"></p>
+            </div>
+        </div>
+
+        <div id="folderItems" class="items-grid"></div>
+
+    </section>
+
+</main>
+
+
+<!-- MODAL CREATION DOSSIER -->
+<div id="folderModal" class="modal-bg">
+
+    <div class="modal">
+
+        <h2 id="folderModalTitle">Nouveau dossier</h2>
+
+        <input
+            id="folderName"
+            type="text"
+            placeholder="Ex : DOJ, SAMU, Civil..."
+        >
+
+        <div class="modal-buttons">
+            <button class="btn secondary" onclick="closeFolderModal()">
+                Annuler
+            </button>
+
+            <button class="btn" onclick="saveFolder()">
+                Enregistrer
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- MODAL AJOUT DOSSIER -->
+<div id="addModal" class="modal-bg">
+
+    <div class="modal">
+
+        <h2>Ajouter à un dossier</h2>
+
+        <div id="folderSelect" class="folder-select"></div>
+
+        <div class="modal-buttons">
+            <button class="btn secondary" onclick="closeAddModal()">
+                Annuler
+            </button>
+
+            <button class="btn" onclick="saveItemFolders()">
+                Enregistrer
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="toast" class="toast"></div>
+
+
+<script>
+
+let data = JSON.parse(localStorage.getItem("robloxOutfitData")) || {
+    folders: [],
+    items: []
+};
+
+let currentFolderId = null;
+let editingFolderId = null;
+let selectedItemId = null;
+
+
+function saveData() {
+    localStorage.setItem(
+        "robloxOutfitData",
+        JSON.stringify(data)
+    );
+}
+
+
+function showToast(message) {
+
+    const toast = document.getElementById("toast");
+
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 2200);
+}
+
+
+function showPage(page) {
+
+    document.querySelectorAll(".page").forEach(p => {
+        p.classList.remove("active");
+    });
+
+    document.getElementById(page).classList.add("active");
+
+    document.querySelectorAll("nav button").forEach(b => {
+        b.classList.remove("active");
+    });
+
+    if (page === "home") {
+        document.getElementById("navHome").classList.add("active");
+    }
+
+    if (page === "items") {
+        document.getElementById("navItems").classList.add("active");
+    }
+
+    if (page === "folders") {
+        document.getElementById("navFolders").classList.add("active");
+    }
+
+    render();
+}
+
+
+function extractId(text) {
+
+    text = text.trim();
+
+    if (/^\d+$/.test(text)) {
+        return text;
+    }
+
+    const patterns = [
+        /catalog[\/?](\d+)/i,
+        /item[\/?](\d+)/i,
+        /asset[\/?](\d+)/i,
+        /id=(\d+)/i
+    ];
+
+    for (const pattern of patterns) {
+
+        const match = text.match(pattern);
+
+        if (match) {
+            return match[1];
+        }
+    }
+
+    const numbers = text.match(/\d{5,}/);
+
+    return numbers ? numbers[0] : null;
+}
+
+
+function importItems() {
+
+    const input = document.getElementById("links").value;
+
+    if (!input.trim()) {
+        showToast("Colle au moins un lien Roblox.");
+        return;
+    }
+
+    const parts = input.split(/[\s,\n]+/);
+
+    let added = 0;
+
+    parts.forEach(part => {
+
+        const id = extractId(part);
+
+        if (!id) return;
+
+        if (data.items.some(item => item.id === id)) {
+            return;
+        }
+
+        data.items.push({
+            id: id,
+            name: "Item Roblox " + id,
+            url: "https://www.roblox.com/catalog/" + id,
+            folders: [],
+            addedAt: Date.now()
+        });
+
+        added++;
+    });
+
+    saveData();
+
+    document.getElementById("links").value = "";
+
+    render();
+
+    showToast(
+        added +
+        (added > 1 ? " items ajoutés." : " item ajouté.")
+    );
+}
+
+
+function thumbnail(id) {
+
+    return "https://www.roblox.com/asset-thumbnail/image?assetId="
+        + id
+        + "&width=420&height=420&format=png";
+}
+
+
+function openFolderModal(folderId = null) {
+
+    editingFolderId = folderId;
+
+    const modal = document.getElementById("folderModal");
+    const input = document.getElementById("folderName");
+    const title = document.getElementById("folderModalTitle");
+
+    if (folderId) {
+
+        const folder = data.folders.find(f => f.id === folderId);
+
+        title.textContent = "Renommer le dossier";
+        input.value = folder ? folder.name : "";
+
+    } else {
+
+        title.textContent = "Nouveau dossier";
+        input.value = "";
+
+    }
+
+    modal.classList.add("open");
+
+    setTimeout(() => input.focus(), 100);
+}
+
+
+function closeFolderModal() {
+
+    document
+        .getElementById("folderModal")
+        .classList.remove("open");
+
+    editingFolderId = null;
+}
+
+
+function saveFolder() {
+
+    const input = document.getElementById("folderName");
+    const name = input.value.trim();
+
+    if (!name) {
+        showToast("Donne un nom au dossier.");
+        return;
+    }
+
+    if (editingFolderId) {
+
+        const folder = data.folders.find(
+            f => f.id === editingFolderId
+        );
+
+        if (folder) {
+            folder.name = name;
+        }
+
+        showToast("Dossier renommé.");
+
+    } else {
+
+        data.folders.push({
+            id: crypto.randomUUID(),
+            name: name,
+            createdAt: Date.now()
+        });
+
+        showToast("Dossier créé.");
+
+    }
+
+    saveData();
+    closeFolderModal();
+    render();
+}
+
+
+function deleteFolder(id) {
+
+    const folder = data.folders.find(f => f.id === id);
+
+    if (!folder) return;
+
+    if (!confirm(
+        'Supprimer le dossier "' +
+        folder.name +
+        '" ?\n\nLes items ne seront pas supprimés.'
+    )) {
+        return;
+    }
+
+    data.folders =
+        data.folders.filter(f => f.id !== id);
+
+    data.items.forEach(item => {
+
+        item.folders =
+            item.folders.filter(fid => fid !== id);
+
+    });
+
+    saveData();
+    render();
+
+    showToast("Dossier supprimé.");
+}
+
+
+function openFolder(id) {
+
+    currentFolderId = id;
+
+    const folder =
+        data.folders.find(f => f.id === id);
+
+    if (!folder) return;
+
+    document.querySelectorAll(".page").forEach(p => {
+        p.classList.remove("active");
+    });
+
+    document.getElementById("folderPage")
+        .classList.add("active");
+
+    document.getElementById("folderTitle")
+        .textContent = "📁 " + folder.name;
+
+    const count =
+        data.items.filter(item =>
+            item.folders.includes(id)
+        ).length;
+
+    document.getElementById("folderSubtitle")
+        .textContent =
+        count +
+        (count > 1 ? " items" : " item");
+
+    renderFolderItems();
+}
+
+
+function openAddModal(itemId) {
+
+    selectedItemId = itemId;
+
+    const item =
+        data.items.find(i => i.id === itemId);
+
+    if (!item) return;
+
+    const container =
+        document.getElementById("folderSelect");
+
+    if (data.folders.length === 0) {
+
+        container.innerHTML = `
+            <p style="color:#aaa">
+                Tu n'as encore créé aucun dossier.
+            </p>
+
+            <button class="btn"
+                onclick="closeAddModal(); openFolderModal();">
+                ＋ Créer un dossier
+            </button>
+        `;
+
+    } else {
+
+        container.innerHTML =
+            data.folders.map(folder => `
+
+                <label class="folder-option">
+
+                    <input
+                        type="checkbox"
+                        value="${folder.id}"
+                        ${item.folders.includes(folder.id) ? "checked" : ""}
+                    >
+
+                    <span>📁 ${escapeHtml(folder.name)}</span>
+
+                </label>
+
+            `).join("");
+
+    }
+
+    document
+        .getElementById("addModal")
+        .classList.add("open");
+}
+
+
+function closeAddModal() {
+
+    document
+        .getElementById("addModal")
+        .classList.remove("open");
+
+    selectedItemId = null;
+}
+
+
+function saveItemFolders() {
+
+    const item =
+        data.items.find(i => i.id === selectedItemId);
+
+    if (!item) return;
+
+    const checked =
+        [...document.querySelectorAll(
+            "#folderSelect input:checked"
+        )].map(input => input.value);
+
+    item.folders = checked;
+
+    saveData();
+    closeAddModal();
+    render();
+
+    showToast("Dossiers mis à jour.");
+}
+
+
+function deleteItem(id) {
+
+    if (!confirm("Supprimer cet item de ta bibliothèque ?")) {
+        return;
+    }
+
+    data.items =
+        data.items.filter(item => item.id !== id);
+
+    saveData();
+    render();
+
+    showToast("Item supprimé.");
+}
+
+
+function removeFromFolder(itemId, folderId) {
+
+    const item =
+        data.items.find(i => i.id === itemId);
+
+    if (!item) return;
+
+    item.folders =
+        item.folders.filter(id => id !== folderId);
+
+    saveData();
+
+    renderFolderItems();
+
+    showToast("Item retiré du dossier.");
+}
+
+
+function copyId(id) {
+
+    navigator.clipboard.writeText(id);
+
+    showToast("ID copié : " + id);
+}
+
+
+function renderFolders() {
+
+    const search =
+        document.getElementById("search")
+            .value.toLowerCase();
+
+    const filtered =
+        data.folders.filter(folder =>
+            folder.name.toLowerCase()
+                .includes(search)
+        );
+
+    const html =
+        filtered.map(folder => {
+
+            const count =
+                data.items.filter(item =>
+                    item.folders.includes(folder.id)
+                ).length;
+
+            return `
+
+                <div class="folder">
+
+                    <div class="folder-icon">📁</div>
+
+                    <div class="folder-name">
+                        ${escapeHtml(folder.name)}
+                    </div>
+
+                    <div class="folder-count">
+                        ${count}
+                        ${count > 1 ? "items" : "item"}
+                    </div>
+
+                    <div class="folder-actions">
+
+                        <button
+                            class="btn small"
+                            onclick="openFolder('${folder.id}')">
+                            Ouvrir
+                        </button>
+
+                        <button
+                            class="btn small secondary"
+                            onclick="openFolderModal('${folder.id}')">
+                            ✏️
+                        </button>
+
+                        <button
+                            class="btn small danger"
+                            onclick="deleteFolder('${folder.id}')">
+                            🗑️
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+
+    const empty =
+        `
+        <div class="empty">
+            Aucun dossier pour le moment.<br><br>
+            Crée ton premier dossier avec le bouton
+            « Nouveau dossier ».
+        </div>
+        `;
+
+    document.getElementById("foldersGrid")
+        .innerHTML = html || empty;
+
+    document.getElementById("homeFolders")
+        .innerHTML = html || empty;
+}
+
+
+function itemHTML(item, folderId = null) {
+
+    const menuId =
+        "menu-" + item.id + "-" + Math.random()
+            .toString(36)
+            .substring(2, 7);
+
+    return `
+
+        <div class="item">
+
+            <div class="item-image">
+
+                <img
+                    src="${thumbnail(item.id)}"
+                    alt="${escapeHtml(item.name)}"
+                    loading="lazy"
+                    onerror="this.style.display='none'"
+                >
+
+            </div>
+
+            <div class="more">
+
+                <button
+                    onclick="toggleMenu('${menuId}')">
+                    ⋯
+                </button>
+
+                <div
+                    id="${menuId}"
+                    class="menu">
+
+                    <button
+                        onclick="openAddModal('${item.id}')">
+                        📁 Ajouter à un dossier
+                    </button>
+
+                    <button
+                        onclick="copyId('${item.id}')">
+                        📋 Copier l'ID
+                    </button>
+
+                    <button
+                        onclick="window.open('${item.url}', '_blank')">
+                        ↗️ Ouvrir Roblox
+                    </button>
+
+                    ${
+                        folderId
+                        ?
+                        `<button
+                            onclick="removeFromFolder('${item.id}', '${folderId}')">
+                            ➖ Retirer du dossier
+                        </button>`
+                        :
+                        ""
+                    }
+
+                    <button
+                        onclick="deleteItem('${item.id}')">
+                        🗑️ Supprimer
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="item-info">
+
+                <div class="item-name">
+                    ${escapeHtml(item.name)}
+                </div>
+
+                <div class="item-id">
+                    ID : ${item.id}
+                </div>
+
+                <div class="item-actions">
+
+                    <button
+                        class="btn small"
+                        onclick="window.open('${item.url}', '_blank')">
+                        Roblox
+                    </button>
+
+                    <button
+                        class="btn small secondary"
+                        onclick="openAddModal('${item.id}')">
+                        📁
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+    `;
+}
+
+
+function renderItems() {
+
+    const search =
+        document.getElementById("search")
+            .value.toLowerCase();
+
+    const filtered =
+        data.items.filter(item =>
+            item.id.includes(search) ||
+            item.name.toLowerCase()
+                .includes(search)
+        );
+
+    const html =
+        filtered.map(item =>
+            itemHTML(item)
+        ).join("");
+
+    document.getElementById("itemsGrid")
+        .innerHTML =
+        html ||
+        `
+        <div class="empty">
+            Aucun item trouvé.
+        </div>
+        `;
+}
+
+
+function renderFolderItems() {
+
+    if (!currentFolderId) return;
+
+    const search =
+        document.getElementById("search")
+            .value.toLowerCase();
+
+    const items =
+        data.items.filter(item =>
+            item.folders.includes(currentFolderId) &&
+            (
+                item.id.includes(search) ||
+                item.name.toLowerCase()
+                    .includes(search)
+            )
+        );
+
+    document.getElementById("folderItems")
+        .innerHTML =
+        items.map(item =>
+            itemHTML(item, currentFolderId)
+        ).join("") ||
+
+        `
+        <div class="empty">
+            Ce dossier est vide.<br><br>
+            Ajoute des items avec le bouton ⋯.
+        </div>
+        `;
+}
+
+
+function render() {
+
+    renderFolders();
+    renderItems();
+
+    if (
+        document.getElementById("folderPage")
+            .classList.contains("active")
+    ) {
+        renderFolderItems();
+    }
+}
+
+
+function toggleMenu(id) {
+
+    document.querySelectorAll(".menu")
+        .forEach(menu => {
+
+            if (menu.id !== id) {
+                menu.classList.remove("open");
+            }
+
+        });
+
+    const menu =
+        document.getElementById(id);
+
+    if (menu) {
+        menu.classList.toggle("open");
+    }
+}
+
+
+document.addEventListener("click", function(event) {
+
+    if (!event.target.closest(".more")) {
+
+        document.querySelectorAll(".menu")
+            .forEach(menu =>
+                menu.classList.remove("open")
+            );
+
+    }
+
+});
+
+
+function escapeHtml(text) {
+
+    return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+render();
+
+</script>
+
+</body>
+</html>
