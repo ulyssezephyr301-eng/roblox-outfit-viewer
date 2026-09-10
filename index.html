@@ -1,1355 +1,419 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Roblox Outfit Viewer</title>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RBLX Outfit Viewer</title>
 <style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: #0f1014;
-    color: #ffffff;
-}
-
-button, input, textarea {
-    font: inherit;
-}
-
-button {
-    cursor: pointer;
-}
-
-header {
-    height: 70px;
-    background: #17181e;
-    border-bottom: 1px solid #292b33;
-    display: flex;
-    align-items: center;
-    padding: 0 25px;
-    gap: 20px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.logo {
-    font-size: 21px;
-    font-weight: 800;
-    white-space: nowrap;
-}
-
-.logo span {
-    color: #8b5cf6;
-}
-
-.search {
-    flex: 1;
-    max-width: 550px;
-}
-
-.search input {
-    width: 100%;
-    background: #23252d;
-    color: white;
-    border: 1px solid #343640;
-    padding: 11px 15px;
-    border-radius: 12px;
-    outline: none;
-}
-
-.search input:focus {
-    border-color: #8b5cf6;
-}
-
-.container {
-    max-width: 1250px;
-    margin: auto;
-    padding: 30px 20px;
-}
-
-.page {
-    display: none;
-}
-
-.page.active {
-    display: block;
-}
-
-h1 {
-    margin-top: 0;
-    font-size: 32px;
-}
-
-.subtitle {
-    color: #a7a9b2;
-    margin-top: -15px;
-    margin-bottom: 30px;
-}
-
-.btn {
-    border: 0;
-    border-radius: 10px;
-    padding: 11px 17px;
-    background: #8b5cf6;
-    color: white;
-    font-weight: 700;
-}
-
-.btn:hover {
-    filter: brightness(1.1);
-}
-
-.btn.secondary {
-    background: #292b34;
-}
-
-.btn.danger {
-    background: #dc2626;
-}
-
-.btn.small {
-    padding: 8px 12px;
-    font-size: 13px;
-}
-
-.section-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 15px;
-}
-
-.cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-    gap: 16px;
-}
-
-.folder {
-    background: #191a20;
-    border: 1px solid #292b33;
-    border-radius: 15px;
-    padding: 20px;
-    min-height: 145px;
-    transition: .15s;
-}
-
-.folder:hover {
-    border-color: #8b5cf6;
-    transform: translateY(-2px);
-}
-
-.folder-icon {
-    font-size: 40px;
-    margin-bottom: 12px;
-}
-
-.folder-name {
-    font-weight: 700;
-    font-size: 17px;
-}
-
-.folder-count {
-    color: #9699a5;
-    font-size: 13px;
-    margin-top: 5px;
-}
-
-.folder-actions {
-    margin-top: 16px;
-    display: flex;
-    gap: 7px;
-}
-
-.import-box {
-    background: #18191f;
-    border: 1px solid #292b33;
-    border-radius: 17px;
-    padding: 22px;
-    margin-bottom: 30px;
-}
-
-textarea {
-    width: 100%;
-    min-height: 150px;
-    resize: vertical;
-    background: #111217;
-    border: 1px solid #333640;
-    border-radius: 12px;
-    color: white;
-    padding: 15px;
-    outline: none;
-}
-
-textarea:focus {
-    border-color: #8b5cf6;
-}
-
-.import-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-}
-
-.items-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-    gap: 18px;
-}
-
-.item {
-    background: #18191f;
-    border: 1px solid #292b33;
-    border-radius: 16px;
-    overflow: hidden;
-    position: relative;
-}
-
-.item-image {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    background: #24262e;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.item-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.item-info {
-    padding: 14px;
-}
-
-.item-name {
-    font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.item-id {
-    color: #9295a1;
-    font-size: 12px;
-    margin-top: 5px;
-}
-
-.item-actions {
-    display: flex;
-    gap: 7px;
-    margin-top: 12px;
-}
-
-.more {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-}
-
-.more button {
-    width: 35px;
-    height: 35px;
-    border: 0;
-    border-radius: 50%;
-    background: rgba(0,0,0,.65);
-    color: white;
-    font-size: 20px;
-}
-
-.menu {
-    display: none;
-    position: absolute;
-    right: 10px;
-    top: 48px;
-    width: 190px;
-    background: #24262d;
-    border: 1px solid #393b45;
-    border-radius: 12px;
-    overflow: hidden;
-    z-index: 20;
-}
-
-.menu.open {
-    display: block;
-}
-
-.menu button {
-    width: 100%;
-    text-align: left;
-    border: 0;
-    background: transparent;
-    color: white;
-    padding: 12px;
-}
-
-.menu button:hover {
-    background: #333640;
-}
-
-.back {
-    margin-bottom: 20px;
-}
-
-.empty {
-    text-align: center;
-    color: #898c98;
-    padding: 60px 20px;
-    border: 1px dashed #363842;
-    border-radius: 15px;
-}
-
-.modal-bg {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.7);
-    z-index: 500;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.modal-bg.open {
-    display: flex;
-}
-
-.modal {
-    background: #1b1c22;
-    border: 1px solid #343640;
-    width: 100%;
-    max-width: 450px;
-    border-radius: 17px;
-    padding: 23px;
-}
-
-.modal h2 {
-    margin-top: 0;
-}
-
-.modal input {
-    width: 100%;
-    background: #101116;
-    border: 1px solid #363944;
-    color: white;
-    padding: 12px;
-    border-radius: 10px;
-    outline: none;
-}
-
-.modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 18px;
-}
-
-.folder-select {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.folder-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.folder-option:hover {
-    background: #292b33;
-}
-
-.folder-option input {
-    width: auto;
-}
-
-.toast {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    background: #24262d;
-    border: 1px solid #3a3c46;
-    padding: 13px 17px;
-    border-radius: 11px;
-    display: none;
-    z-index: 1000;
-}
-
-.toast.show {
-    display: block;
-}
-
-nav {
-    display: flex;
-    gap: 7px;
-}
-
-nav button {
-    background: transparent;
-    color: #aaa;
-    border: 0;
-    padding: 9px 11px;
-    border-radius: 9px;
-}
-
-nav button:hover,
-nav button.active {
-    color: white;
-    background: #292b33;
-}
-
-@media (max-width: 700px) {
-    header {
-        height: auto;
-        min-height: 65px;
-        flex-wrap: wrap;
-        padding: 12px;
-    }
-
-    nav {
-        order: 3;
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    .search {
-        max-width: none;
-    }
-
-    h1 {
-        font-size: 26px;
-    }
-
-    .items-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-
-    .cards {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .item-info {
-        padding: 10px;
-    }
-}
+:root{
+  --accent:#8b5cf6; --accent2:#7c3aed; --bg:#0b0b10; --panel:#14141c; --panel2:#1b1b25;
+  --text:#f5f5f7; --muted:#9b9baa; --border:#292936; --danger:#ef4444; --shadow:0 18px 50px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.app{min-height:100vh}
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+.header-inner{max-width:1250px;margin:auto;padding:14px 20px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;min-width:205px}
+.logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent);box-shadow:0 8px 25px color-mix(in srgb,var(--accent) 35%,transparent)}
+.logo svg{width:27px;height:27px}
+.brand b{font-size:16px}.brand span{display:block;color:var(--muted);font-size:11px}
+.search{flex:1;position:relative}.search input{width:100%;padding:12px 16px 12px 42px;background:var(--panel);border:1px solid var(--border);border-radius:13px;color:var(--text);outline:none}.search input:focus{border-color:var(--accent)}.search .ico{position:absolute;left:15px;top:11px;color:var(--muted)}
+nav{display:flex;gap:6px}.nav-btn{border:0;background:transparent;color:var(--muted);padding:10px 12px;border-radius:10px}.nav-btn.active,.nav-btn:hover{background:var(--panel2);color:var(--text)}
+main{max-width:1250px;margin:auto;padding:26px 20px 70px}
+.hero{padding:18px 0 8px}.hero h1{margin:0 0 6px;font-size:28px}.hero p{margin:0;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-top:18px}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:13px}.section-title h2{font-size:17px;margin:0}.muted{color:var(--muted)}
+textarea{width:100%;min-height:120px;resize:vertical;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:13px;padding:14px;outline:none}textarea:focus{border-color:var(--accent)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.btn{border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:11px;padding:10px 14px}.btn:hover{border-color:var(--accent)}.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.danger{background:transparent;color:#ff7373;border-color:#63303a}.btn.small{padding:7px 9px;font-size:12px}
+select,input[type="text"]{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:11px;padding:10px 12px;outline:none}select:focus,input[type="text"]:focus{border-color:var(--accent)}
+.folder-grid,.items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.folder{position:relative;border:1px solid var(--border);background:var(--panel2);border-radius:15px;padding:15px;min-height:120px;overflow:hidden}
+.folder-color{height:7px;border-radius:8px;margin:-15px -15px 13px}
+.folder-top{display:flex;align-items:center;gap:11px}.folder-icon{width:45px;height:45px;border-radius:12px;overflow:hidden;display:grid;place-items:center;background:#222}.folder-icon img{width:100%;height:100%;object-fit:cover}.folder-icon .fallback{font-size:21px}.folder h3{margin:0;font-size:15px}.folder p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.folder-actions{display:flex;gap:7px;margin-top:14px}.icon-btn{border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:9px;padding:7px 9px}.icon-btn:hover{color:var(--text);border-color:var(--accent)}
+.item{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:16px;overflow:hidden}.item.selected{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent)}
+.item-check{position:absolute;z-index:4;left:10px;top:10px;width:20px;height:20px;accent-color:var(--accent)}
+.item-image{aspect-ratio:1/1;background:#0e0e14;display:grid;place-items:center}.item-image img{width:100%;height:100%;object-fit:contain}
+.more{position:absolute;right:9px;top:8px;z-index:5}.more>button{width:34px;height:34px;border:1px solid var(--border);background:rgba(10,10,15,.82);color:#fff;border-radius:10px;font-size:20px}.menu{display:none;position:absolute;right:0;top:40px;width:200px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:var(--shadow)}.menu.open{display:block}.menu button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--text);padding:9px;border-radius:8px}.menu button:hover{background:var(--panel2)}
+.item-info{padding:13px}.item-name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item-id,.item-time{font-size:12px;color:var(--muted);margin-top:4px}.item-actions{display:flex;gap:7px;margin-top:10px}
+.toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}.selection-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.count{font-size:13px;color:var(--muted)}
+.filters{display:flex;gap:8px;flex-wrap:wrap}.filter-btn{border:1px solid var(--border);background:var(--panel2);color:var(--muted);padding:8px 11px;border-radius:10px}.filter-btn.active{color:#fff;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 20%,var(--panel2))}
+.empty{padding:35px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:14px}
+.modal-back{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:18px}.modal-back.open{display:flex}.modal{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:20px}.modal h2{margin:0 0 14px}.modal label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}.modal input[type=file]{width:100%}.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}.check{border:1px solid var(--border);padding:10px;border-radius:10px;background:var(--panel2)}.check input{accent-color:var(--accent)}
+.palette{display:flex;gap:8px;flex-wrap:wrap}.swatch{width:34px;height:34px;border-radius:10px;border:2px solid transparent}.swatch.active{border-color:#fff;outline:2px solid var(--accent)}
+.avatar-stage{display:grid;place-items:center;min-height:480px;background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--accent) 12%,transparent),transparent 45%),var(--panel2);border:1px solid var(--border);border-radius:18px;overflow:hidden}.avatar-preview{position:relative;width:min(390px,80vw);aspect-ratio:1/1;display:grid;place-items:center}.avatar-preview img{max-width:100%;max-height:100%;object-fit:contain}.avatar-label{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.65);padding:7px 10px;border-radius:9px;font-size:12px}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.setting{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:15px}.setting h3{margin:0 0 6px;font-size:14px}.setting p{font-size:12px;color:var(--muted);margin:0 0 12px}.notice{padding:11px 12px;border-radius:11px;background:color-mix(in srgb,var(--accent) 10%,var(--panel2));border:1px solid color-mix(in srgb,var(--accent) 35%,var(--border));font-size:12px;color:var(--muted)}
+.toast{position:fixed;right:18px;bottom:18px;z-index:100;background:var(--panel);border:1px solid var(--border);padding:12px 14px;border-radius:12px;box-shadow:var(--shadow);display:none}.toast.show{display:block}
+@media(max-width:800px){.header-inner{flex-wrap:wrap}.brand{min-width:auto}.search{order:3;flex-basis:100%}.settings-grid{grid-template-columns:1fr}}
 </style>
 </head>
-
 <body>
-
+<div class="app">
 <header>
-    <div class="logo">RBLX <span>Outfit Viewer</span></div>
-
-    <div class="search">
-        <input
-            type="text"
-            id="search"
-            placeholder="Rechercher un item ou un dossier..."
-            oninput="render()"
-        >
+  <div class="header-inner">
+    <div class="brand">
+      <div class="logo" aria-label="RBLX Outfit Viewer logo">
+        <svg viewBox="0 0 32 32" fill="none"><rect x="5" y="5" width="22" height="22" rx="6" fill="white"/><path d="M10 12h12v3H10zm0 5h8v3h-8z" fill="var(--accent)"/></svg>
+      </div>
+      <div><b>RBLX Outfit Viewer</b><span>Ton inventaire Roblox</span></div>
     </div>
-
+    <div class="search"><span class="ico">⌕</span><input id="globalSearch" placeholder="Rechercher dans ton historique..." oninput="render()"></div>
     <nav>
-        <button id="navHome" class="active" onclick="showPage('home')">Accueil</button>
-        <button id="navItems" onclick="showPage('items')">Items</button>
-        <button id="navFolders" onclick="showPage('folders')">Dossiers</button>
+      <button class="nav-btn active" data-page="home" onclick="showPage('home')">Accueil</button>
+      <button class="nav-btn" data-page="items" onclick="showPage('items')">Historique</button>
+      <button class="nav-btn" data-page="folders" onclick="showPage('folders')">Dossiers</button>
+      <button class="nav-btn" data-page="settings" onclick="showPage('settings')">Paramètres</button>
     </nav>
+  </div>
 </header>
 
-<main class="container">
+<main>
+  <section id="page-home">
+    <div class="hero"><h1 id="greeting">Bonjour</h1><p>Ajoute des items Roblox et construis ton inventaire personnel.</p></div>
 
-    <!-- ACCUEIL -->
-    <section id="home" class="page active">
+    <div class="card">
+      <div class="section-title"><h2>Ajouter des items</h2><span class="muted">Liens Roblox d'items uniquement</span></div>
+      <textarea id="links" placeholder="Colle ici un ou plusieurs liens Roblox d'items, un par ligne..."></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" onclick="importItems()">Ajouter les items</button>
+        <button class="btn" onclick="searchIdFromInput()">Chercher un ID dans mon historique</button>
+        <span class="muted" id="importHint">Tu peux coller plusieurs liens à la fois.</span>
+      </div>
+      <div id="directFolderArea" style="margin-top:13px"></div>
+    </div>
 
-        <h1>Bienvenue</h1>
-        <p class="subtitle">
-            Gère tes vêtements, accessoires et UGC Roblox au même endroit.
-        </p>
+    <div class="card">
+      <div class="section-title"><h2>Mes dossiers</h2><button class="btn primary small" onclick="openFolderModal()">+ Nouveau dossier</button></div>
+      <div id="homeFolders"></div>
+    </div>
+  </section>
 
-        <div class="section-title">
-            <h2>Mes dossiers</h2>
-            <button class="btn" onclick="openFolderModal()">＋ Nouveau dossier</button>
+  <section id="page-items" style="display:none">
+    <div class="hero"><h1>Historique</h1><p>Tous tes items enregistrés sur cet appareil.</p></div>
+    <div class="card">
+      <div class="toolbar">
+        <div class="selection-tools">
+          <button class="btn small" onclick="toggleSelectAll()">Sélectionner tout</button>
+          <button class="btn small" onclick="bulkFolder()">Ajouter à un dossier</button>
+          <button class="btn small danger" onclick="bulkDelete()">Supprimer de l'historique</button>
+          <span class="count" id="selectionCount">0 sélectionné</span>
         </div>
+        <div class="filters" id="filters"></div>
+      </div>
+      <div id="itemsGrid" class="items-grid"></div>
+    </div>
+  </section>
 
-        <div id="homeFolders" class="cards"></div>
+  <section id="page-folders" style="display:none">
+    <div class="hero"><h1>Dossiers</h1><p>Organise tes vêtements comme des playlists.</p></div>
+    <div class="card">
+      <div class="section-title"><h2>Mes dossiers</h2><button class="btn primary small" onclick="openFolderModal()">+ Nouveau dossier</button></div>
+      <div id="foldersGrid"></div>
+    </div>
+  </section>
 
-        <br><br>
+  <section id="page-folder" style="display:none">
+    <div class="hero"><button class="btn small" onclick="showPage('folders')">← Retour aux dossiers</button><h1 id="folderTitle" style="margin-top:12px"></h1><p id="folderMeta"></p></div>
+    <div class="card"><div id="folderItems" class="items-grid"></div></div>
+  </section>
 
-        <div class="section-title">
-            <h2>Ajouter des items</h2>
-        </div>
+  <section id="page-settings" style="display:none">
+    <div class="hero"><h1>Paramètres</h1><p>Les réglages ci-dessous restent enregistrés sur cet appareil.</p></div>
+    <div class="settings-grid">
+      <div class="setting"><h3>Nom / pseudo</h3><p>Il sert uniquement à afficher ton message de bienvenue.</p><input id="profileName" type="text" placeholder="Ton pseudo" style="width:100%"><button class="btn primary small" style="margin-top:9px" onclick="saveProfileName()">Enregistrer</button></div>
+      <div class="setting"><h3>Couleur du site</h3><p>Elle change les boutons, accents et textes importants.</p><div id="palette" class="palette"></div></div>
+      <div class="setting"><h3>Thème</h3><p>Choisis entre mode sombre et mode clair.</p><div class="row"><button class="btn" onclick="setTheme('dark')">Sombre</button><button class="btn" onclick="setTheme('light')">Clair</button></div></div>
+      <div class="setting"><h3>Compte Roblox</h3><p>Tu peux renseigner ton pseudo Roblox pour afficher ton avatar actuel dans le mode « Mon avatar ».</p><input id="robloxUsername" type="text" placeholder="Pseudo Roblox" style="width:100%"><button class="btn primary small" style="margin-top:9px" onclick="saveRobloxUser()">Enregistrer</button><div class="notice" style="margin-top:10px">Cette version ne demande jamais ton mot de passe Roblox. Pour une vraie connexion OAuth, il faut une application Roblox enregistrée et un petit serveur sécurisé ; ce n'est pas sûr de mettre un secret OAuth dans GitHub Pages.</div></div>
+      <div class="setting"><h3>Données</h3><p>Ton historique, tes dossiers et tes réglages sont stockés dans le stockage local de ton navigateur. Ils ne sont pas automatiquement synchronisés entre appareils.</p><div class="row"><button class="btn small" onclick="exportData()">Exporter mes données</button><label class="btn small" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">Importer une sauvegarde<input id="backupFile" type="file" accept="application/json" style="display:none" onchange="importData(this.files[0])"></label><button class="btn small danger" onclick="clearAllData()">Tout effacer</button></div></div>
+      <div class="setting"><h3>À propos</h3><p>RBLX Outfit Viewer est une interface personnelle. Le nom/pseudo saisi ici n'est utilisé que localement pour le message d'accueil.</p></div>
+    </div>
+    <div class="card">
+      <div class="section-title"><h2>Visualisation</h2><span class="muted">4 modes</span></div>
+      <div class="row">
+        <button class="btn" onclick="showPage('items')">Voir les items seuls</button>
+        <button class="btn" onclick="openAvatarViewer('R6')">Voir sur R6</button>
+        <button class="btn" onclick="openAvatarViewer('R15')">Voir sur R15</button>
+        <button class="btn" onclick="openAvatarViewer('SELF')">Voir sur mon avatar</button>
+      </div>
+    </div>
+  </section>
 
-        <div class="import-box">
-            <p>
-                Colle ici tes liens Roblox. Tu peux en mettre plusieurs,
-                un par ligne ou séparés par des espaces.
-            </p>
-
-            <textarea
-                id="links"
-                placeholder="https://www.roblox.com/catalog/123456789/...
-https://www.roblox.com/catalog/987654321/..."
-            ></textarea>
-
-            <div class="import-buttons">
-                <button class="btn" onclick="importItems()">
-                    Ajouter les items
-                </button>
-
-                <button class="btn secondary" onclick="document.getElementById('links').value=''">
-                    Effacer
-                </button>
-            </div>
-        </div>
-
-    </section>
-
-
-    <!-- ITEMS -->
-    <section id="items" class="page">
-
-        <button class="btn secondary back" onclick="showPage('home')">
-            ← Retour
-        </button>
-
-        <div class="section-title">
-            <div>
-                <h1>Tous mes items</h1>
-                <p class="subtitle">Ton historique complet.</p>
-            </div>
-        </div>
-
-        <div id="itemsGrid" class="items-grid"></div>
-
-    </section>
-
-
-    <!-- DOSSIERS -->
-    <section id="folders" class="page">
-
-        <div class="section-title">
-            <div>
-                <h1>Mes dossiers</h1>
-                <p class="subtitle">Organise tes items comme des playlists.</p>
-            </div>
-
-            <button class="btn" onclick="openFolderModal()">
-                ＋ Nouveau dossier
-            </button>
-        </div>
-
-        <div id="foldersGrid" class="cards"></div>
-
-    </section>
-
-
-    <!-- CONTENU DOSSIER -->
-    <section id="folderPage" class="page">
-
-        <button class="btn secondary back" onclick="showPage('folders')">
-            ← Mes dossiers
-        </button>
-
-        <div class="section-title">
-            <div>
-                <h1 id="folderTitle"></h1>
-                <p id="folderSubtitle" class="subtitle"></p>
-            </div>
-        </div>
-
-        <div id="folderItems" class="items-grid"></div>
-
-    </section>
-
+  <section id="page-avatar" style="display:none">
+    <div class="hero"><button class="btn small" onclick="showPage('items')">← Retour</button><h1 id="avatarTitle" style="margin-top:12px"></h1><p id="avatarSub"></p></div>
+    <div class="card">
+      <div class="avatar-stage"><div class="avatar-preview" id="avatarPreview"></div></div>
+      <div class="notice" style="margin-top:12px">Le mode R6/R15 est une prévisualisation de rig. Le mode « Mon avatar » utilise l'avatar public actuel de ton compte. Une vraie cabine d'essayage qui applique n'importe quel UGC à un avatar Roblox nécessite une intégration Roblox plus poussée.</div>
+    </div>
+  </section>
 </main>
-
-
-<!-- MODAL CREATION DOSSIER -->
-<div id="folderModal" class="modal-bg">
-
-    <div class="modal">
-
-        <h2 id="folderModalTitle">Nouveau dossier</h2>
-
-        <input
-            id="folderName"
-            type="text"
-            placeholder="Ex : DOJ, SAMU, Civil..."
-        >
-
-        <div class="modal-buttons">
-            <button class="btn secondary" onclick="closeFolderModal()">
-                Annuler
-            </button>
-
-            <button class="btn" onclick="saveFolder()">
-                Enregistrer
-            </button>
-        </div>
-
-    </div>
-
 </div>
 
-
-<!-- MODAL AJOUT DOSSIER -->
-<div id="addModal" class="modal-bg">
-
-    <div class="modal">
-
-        <h2>Ajouter à un dossier</h2>
-
-        <div id="folderSelect" class="folder-select"></div>
-
-        <div class="modal-buttons">
-            <button class="btn secondary" onclick="closeAddModal()">
-                Annuler
-            </button>
-
-            <button class="btn" onclick="saveItemFolders()">
-                Enregistrer
-            </button>
-        </div>
-
-    </div>
-
+<div class="modal-back" id="folderModal">
+  <div class="modal">
+    <h2 id="folderModalTitle">Nouveau dossier</h2>
+    <label>Nom du dossier</label><input id="folderName" type="text" placeholder="Ex : Tenues hiver" style="width:100%">
+    <label>Couleur</label><input id="folderColor" type="color" value="#8b5cf6" style="width:60px;height:40px;padding:2px">
+    <label>Logo du dossier (optionnel)</label><input id="folderLogo" type="file" accept="image/*">
+    <div class="row" style="margin-top:17px"><button class="btn" onclick="closeFolderModal()">Annuler</button><button class="btn primary" onclick="saveFolder()">Enregistrer</button></div>
+  </div>
 </div>
 
+<div class="modal-back" id="bulkModal">
+  <div class="modal">
+    <h2>Ajouter la sélection à un dossier</h2>
+    <div id="bulkChecks" class="checks"></div>
+    <div class="row" style="margin-top:17px"><button class="btn" onclick="closeBulkModal()">Annuler</button><button class="btn primary" onclick="saveBulkFolders()">Ajouter</button></div>
+  </div>
+</div>
 
-<div id="toast" class="toast"></div>
-
+<div class="modal-back" id="addModal">
+  <div class="modal">
+    <h2>Ajouter à un dossier</h2>
+    <div id="addChecks" class="checks"></div>
+    <div class="row" style="margin-top:17px"><button class="btn" onclick="closeAddModal()">Annuler</button><button class="btn primary" onclick="saveItemFolders()">Enregistrer</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
+const STORAGE_KEY="rblxOutfitViewer_v3";
+const COLORS=["#8b5cf6","#3b82f6","#06b6d4","#10b981","#f59e0b","#f97316","#ef4444","#ec4899"];
+let data=loadData();
+let currentPage="home";
+let currentFolderId=null;
+let currentEditFolderId=null;
+let currentAddItemId=null;
+let currentAvatarMode="R6";
+let selected=new Set();
+let filterType="all";
 
-let data = JSON.parse(localStorage.getItem("robloxOutfitData")) || {
-    folders: [],
-    items: []
-};
-
-let currentFolderId = null;
-let editingFolderId = null;
-let selectedItemId = null;
-
-
-function saveData() {
-    localStorage.setItem(
-        "robloxOutfitData",
-        JSON.stringify(data)
-    );
+function loadData(){
+  try{
+    const d=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+    return d&&Array.isArray(d.items)&&Array.isArray(d.folders)?d:{items:[],folders:[],settings:{name:"",theme:"dark",accent:"#8b5cf6",robloxUsername:""}};
+  }catch{return {items:[],folders:[],settings:{name:"",theme:"dark",accent:"#8b5cf6",robloxUsername:""}}}
 }
-
-
-function showToast(message) {
-
-    const toast = document.getElementById("toast");
-
-    toast.textContent = message;
-    toast.classList.add("show");
-
-    setTimeout(() => {
-        toast.classList.remove("show");
-    }, 2200);
+function saveData(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove("show"),2600)}
+function applySettings(){
+  const s=data.settings||{};
+  document.documentElement.style.setProperty("--accent",s.accent||"#8b5cf6");
+  document.documentElement.style.setProperty("--accent2",s.accent||"#8b5cf6");
+  document.body.dataset.theme=s.theme||"dark";
+  if(s.theme==="light"){
+    document.documentElement.style.setProperty("--bg","#f5f6fa");document.documentElement.style.setProperty("--panel","#fff");document.documentElement.style.setProperty("--panel2","#f0f1f6");document.documentElement.style.setProperty("--text","#16161d");document.documentElement.style.setProperty("--muted","#686876");document.documentElement.style.setProperty("--border","#dedee8");
+  }else{
+    document.documentElement.style.setProperty("--bg","#0b0b10");document.documentElement.style.setProperty("--panel","#14141c");document.documentElement.style.setProperty("--panel2","#1b1b25");document.documentElement.style.setProperty("--text","#f5f5f7");document.documentElement.style.setProperty("--muted","#9b9baa");document.documentElement.style.setProperty("--border","#292936");
+  }
 }
-
-
-function showPage(page) {
-
-    document.querySelectorAll(".page").forEach(p => {
-        p.classList.remove("active");
-    });
-
-    document.getElementById(page).classList.add("active");
-
-    document.querySelectorAll("nav button").forEach(b => {
-        b.classList.remove("active");
-    });
-
-    if (page === "home") {
-        document.getElementById("navHome").classList.add("active");
-    }
-
-    if (page === "items") {
-        document.getElementById("navItems").classList.add("active");
-    }
-
-    if (page === "folders") {
-        document.getElementById("navFolders").classList.add("active");
-    }
-
-    render();
+function showPage(page){
+  currentPage=page;
+  ["home","items","folders","folder","settings","avatar"].forEach(p=>document.getElementById("page-"+p).style.display=p===page?"block":"none");
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===page||(page==="folder"&&b.dataset.page==="folders")||(page==="avatar"&&b.dataset.page==="items")));
+  render();
 }
-
-
-function extractId(text) {
-
-    text = text.trim();
-
-    if (/^\d+$/.test(text)) {
-        return text;
-    }
-
-    const patterns = [
-        /catalog[\/?](\d+)/i,
-        /item[\/?](\d+)/i,
-        /asset[\/?](\d+)/i,
-        /id=(\d+)/i
-    ];
-
-    for (const pattern of patterns) {
-
-        const match = text.match(pattern);
-
-        if (match) {
-            return match[1];
-        }
-    }
-
-    const numbers = text.match(/\d{5,}/);
-
-    return numbers ? numbers[0] : null;
+function extractItemId(text){
+  const m=String(text).trim().match(/^https?:\/\/(?:www\.)?roblox\.com\/catalog\/(\d+)(?:[/?#].*)?$/i);
+  return m?m[1]:null;
 }
-
-
-function importItems() {
-
-    const input = document.getElementById("links").value;
-
-    if (!input.trim()) {
-        showToast("Colle au moins un lien Roblox.");
-        return;
-    }
-
-    const parts = input.split(/[\s,\n]+/);
-
-    let added = 0;
-
-    parts.forEach(part => {
-
-        const id = extractId(part);
-
-        if (!id) return;
-
-        if (data.items.some(item => item.id === id)) {
-            return;
-        }
-
-        data.items.push({
-            id: id,
-            name: "Item Roblox " + id,
-            url: "https://www.roblox.com/catalog/" + id,
-            folders: [],
-            addedAt: Date.now()
-        });
-
-        added++;
-    });
-
-    saveData();
-
-    document.getElementById("links").value = "";
-
-    render();
-
-    showToast(
-        added +
-        (added > 1 ? " items ajoutés." : " item ajouté.")
-    );
+function formatTime(ts){
+  if(!ts)return "Date inconnue";
+  const diff=Math.max(0,Date.now()-ts), min=Math.floor(diff/60000), h=Math.floor(min/60);
+  if(min<1)return "À l'instant";
+  if(min<60)return "Il y a "+min+" min";
+  if(h<24)return "Il y a "+h+(h>1?" heures":" heure");
+  const d=new Date(ts);return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
 }
-
-
-function thumbnail(id) {
-
-    return "https://www.roblox.com/asset-thumbnail/image?assetId="
-        + id
-        + "&width=420&height=420&format=png";
+function itemType(item){
+  const a=(item.assetType||"").toLowerCase(), n=(item.name||"").toLowerCase();
+  if(a.includes("pants")||n.includes("pants")||n.includes("pantalon"))return "pants";
+  if(a.includes("shirt")||n.includes("shirt")||n.includes("t-shirt")||n.includes("tee"))return "shirts";
+  if(a.includes("ugc")||item.isUGC)return "ugc";
+  if(a.includes("back")||n.includes("back accessory")||n.includes("dos"))return "back";
+  return "other";
 }
-
-
-function openFolderModal(folderId = null) {
-
-    editingFolderId = folderId;
-
-    const modal = document.getElementById("folderModal");
-    const input = document.getElementById("folderName");
-    const title = document.getElementById("folderModalTitle");
-
-    if (folderId) {
-
-        const folder = data.folders.find(f => f.id === folderId);
-
-        title.textContent = "Renommer le dossier";
-        input.value = folder ? folder.name : "";
-
-    } else {
-
-        title.textContent = "Nouveau dossier";
-        input.value = "";
-
-    }
-
-    modal.classList.add("open");
-
-    setTimeout(() => input.focus(), 100);
+function filteredItems(){
+  const q=(document.getElementById("globalSearch")?.value||"").trim().toLowerCase();
+  return data.items.filter(it=>{
+    const okQ=!q||it.name.toLowerCase().includes(q)||it.id.includes(q);
+    const okT=filterType==="all"||itemType(it)===filterType;
+    return okQ&&okT;
+  });
 }
-
-
-function closeFolderModal() {
-
-    document
-        .getElementById("folderModal")
-        .classList.remove("open");
-
-    editingFolderId = null;
+async function getItemInfo(id){
+  let out={name:"Item Roblox "+id,image:null,assetType:"",isUGC:false};
+  try{
+    const r=await fetch("https://catalog.roblox.com/v1/catalog/items/details",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({items:[{itemType:"Asset",id:Number(id)}]})});
+    if(r.ok){const j=await r.json(),x=j.data?.[0];if(x){out.name=x.name||out.name;out.assetType=x.assetType||"";out.isUGC=!!x.creatorTargetId||!!x.creatorType;}}
+  }catch(e){}
+  try{
+    const r=await fetch("https://thumbnails.roblox.com/v1/assets?assetIds="+id+"&returnPolicy=PlaceHolder&size=420x420&format=Png&isCircular=false");
+    if(r.ok){const j=await r.json();out.image=j.data?.[0]?.imageUrl||null;}
+  }catch(e){}
+  return out;
 }
-
-
-function saveFolder() {
-
-    const input = document.getElementById("folderName");
-    const name = input.value.trim();
-
-    if (!name) {
-        showToast("Donne un nom au dossier.");
-        return;
-    }
-
-    if (editingFolderId) {
-
-        const folder = data.folders.find(
-            f => f.id === editingFolderId
-        );
-
-        if (folder) {
-            folder.name = name;
-        }
-
-        showToast("Dossier renommé.");
-
-    } else {
-
-        data.folders.push({
-            id: crypto.randomUUID(),
-            name: name,
-            createdAt: Date.now()
-        });
-
-        showToast("Dossier créé.");
-
-    }
-
-    saveData();
-    closeFolderModal();
-    render();
+function directFolderHTML(){
+  if(!data.folders.length)return '<div class="notice">Crée d’abord un dossier si tu veux classer automatiquement les nouveaux items.</div>';
+  return `<label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px">Dossier(s) pour les nouveaux items (optionnel)</label>
+  <div class="checks">${data.folders.map(f=>`<label class="check"><input type="checkbox" value="${f.id}" class="direct-folder"> ${esc(f.name)}</label>`).join("")}</div>`;
 }
-
-
-function deleteFolder(id) {
-
-    const folder = data.folders.find(f => f.id === id);
-
-    if (!folder) return;
-
-    if (!confirm(
-        'Supprimer le dossier "' +
-        folder.name +
-        '" ?\n\nLes items ne seront pas supprimés.'
-    )) {
-        return;
-    }
-
-    data.folders =
-        data.folders.filter(f => f.id !== id);
-
-    data.items.forEach(item => {
-
-        item.folders =
-            item.folders.filter(fid => fid !== id);
-
-    });
-
-    saveData();
-    render();
-
-    showToast("Dossier supprimé.");
+async function importItems(){
+  const raw=document.getElementById("links").value.trim();
+  if(!raw){toast("Colle au moins un lien Roblox.");return}
+  const parts=raw.split(/[\s,]+/).filter(Boolean), ids=[], invalid=[];
+  for(const p of parts){
+    const id=extractItemId(p);
+    if(id){if(!ids.includes(id)&&!data.items.some(x=>x.id===id))ids.push(id);}
+    else if(/^\d+$/.test(p)){ if(data.items.some(x=>x.id===p)) toast("ID "+p+" trouvé dans ton historique."); else invalid.push(p);}
+    else invalid.push(p);
+  }
+  if(!ids.length){
+    if(invalid.length)toast("Seuls les liens Roblox /catalog/ID sont acceptés.");
+    else toast("Aucun nouvel item à ajouter.");
+    return;
+  }
+  const folderIds=[...document.querySelectorAll(".direct-folder:checked")].map(x=>x.value);
+  toast("Récupération des informations Roblox...");
+  let added=0;
+  for(const id of ids){
+    const info=await getItemInfo(id);
+    data.items.push({id,name:info.name,image:info.image,assetType:info.assetType,isUGC:info.isUGC,url:"https://www.roblox.com/catalog/"+id,folders:folderIds.slice(),addedAt:Date.now()});
+    added++;
+  }
+  saveData();document.getElementById("links").value="";toast(added+(added>1?" items ajoutés.":" item ajouté."));render();
 }
-
-
-function openFolder(id) {
-
-    currentFolderId = id;
-
-    const folder =
-        data.folders.find(f => f.id === id);
-
-    if (!folder) return;
-
-    document.querySelectorAll(".page").forEach(p => {
-        p.classList.remove("active");
-    });
-
-    document.getElementById("folderPage")
-        .classList.add("active");
-
-    document.getElementById("folderTitle")
-        .textContent = "📁 " + folder.name;
-
-    const count =
-        data.items.filter(item =>
-            item.folders.includes(id)
-        ).length;
-
-    document.getElementById("folderSubtitle")
-        .textContent =
-        count +
-        (count > 1 ? " items" : " item");
-
-    renderFolderItems();
+function searchIdFromInput(){
+  const raw=document.getElementById("links").value.trim();
+  const ids=raw.split(/[\s,]+/).filter(x=>/^\d+$/.test(x));
+  if(!ids.length){toast("Entre un ID numérique pour chercher dans l’historique.");return}
+  const found=data.items.filter(x=>ids.includes(x.id));
+  if(found.length){document.getElementById("globalSearch").value=ids.join(" ");showPage("items");toast(found.length+" item(s) trouvé(s).")}
+  else toast("Aucun de ces ID n’est dans ton historique.");
 }
-
-
-function openAddModal(itemId) {
-
-    selectedItemId = itemId;
-
-    const item =
-        data.items.find(i => i.id === itemId);
-
-    if (!item) return;
-
-    const container =
-        document.getElementById("folderSelect");
-
-    if (data.folders.length === 0) {
-
-        container.innerHTML = `
-            <p style="color:#aaa">
-                Tu n'as encore créé aucun dossier.
-            </p>
-
-            <button class="btn"
-                onclick="closeAddModal(); openFolderModal();">
-                ＋ Créer un dossier
-            </button>
-        `;
-
-    } else {
-
-        container.innerHTML =
-            data.folders.map(folder => `
-
-                <label class="folder-option">
-
-                    <input
-                        type="checkbox"
-                        value="${folder.id}"
-                        ${item.folders.includes(folder.id) ? "checked" : ""}
-                    >
-
-                    <span>📁 ${escapeHtml(folder.name)}</span>
-
-                </label>
-
-            `).join("");
-
-    }
-
-    document
-        .getElementById("addModal")
-        .classList.add("open");
+function itemHTML(item,index,folderId=null){
+  const checked=selected.has(item.id)?"checked":"";
+  const menu="m_"+item.id+"_"+Math.random().toString(36).slice(2,7);
+  return `<div class="item ${checked?'selected':''}">
+    <input class="item-check" type="checkbox" ${checked} onchange="toggleSelect('${item.id}',this.checked)">
+    <div class="item-image">${item.image?`<img src="${esc(item.image)}" alt="${esc(item.name)}" loading="lazy">`:`<div class="muted">Image indisponible</div>`}</div>
+    <div class="more"><button onclick="toggleMenu('${menu}')">⋯</button><div class="menu" id="${menu}">
+      <button onclick="openAddModal('${item.id}')">Ajouter à un dossier</button>
+      <button onclick="navigator.clipboard?.writeText('${item.id}');toast('ID copié')">Copier l’ID</button>
+      <button onclick="window.open('${item.url}','_blank')">Ouvrir sur Roblox</button>
+      <button onclick="openAvatarViewer('R6','${item.id}')">Voir sur R6</button>
+      <button onclick="openAvatarViewer('R15','${item.id}')">Voir sur R15</button>
+      ${folderId?`<button onclick="removeFromFolder('${item.id}','${folderId}')">Retirer du dossier</button>`:""}
+      <button onclick="deleteItem('${item.id}')">Supprimer</button>
+    </div></div>
+    <div class="item-info"><div class="item-name">${esc(item.name)}</div><div class="item-id">ID : ${item.id}</div><div class="item-time">${formatTime(item.addedAt)}</div>
+    <div class="item-actions"><button class="btn small" onclick="window.open('${item.url}','_blank')">Roblox</button><button class="btn small" onclick="openAddModal('${item.id}')">Dossier</button></div></div>
+  </div>`;
 }
-
-
-function closeAddModal() {
-
-    document
-        .getElementById("addModal")
-        .classList.remove("open");
-
-    selectedItemId = null;
+function renderItems(){
+  const arr=filteredItems();
+  const grid=document.getElementById("itemsGrid");
+  grid.innerHTML=arr.length?arr.map((x,i)=>itemHTML(x,i)).join(""):'<div class="empty" style="grid-column:1/-1">Aucun item ne correspond à ta recherche.</div>';
+  document.getElementById("selectionCount").textContent=selected.size+" sélectionné"+(selected.size>1?"s":"");
 }
-
-
-function saveItemFolders() {
-
-    const item =
-        data.items.find(i => i.id === selectedItemId);
-
-    if (!item) return;
-
-    const checked =
-        [...document.querySelectorAll(
-            "#folderSelect input:checked"
-        )].map(input => input.value);
-
-    item.folders = checked;
-
-    saveData();
-    closeAddModal();
-    render();
-
-    showToast("Dossiers mis à jour.");
+function renderFilters(){
+  const names={all:"Tout",pants:"Pantalons",shirts:"T-shirts",ugc:"UGC",back:"UGC de dos",other:"Autres"};
+  document.getElementById("filters").innerHTML=Object.entries(names).map(([k,v])=>`<button class="filter-btn ${filterType===k?'active':''}" onclick="filterType='${k}';render()">${v}</button>`).join("");
 }
-
-
-function deleteItem(id) {
-
-    if (!confirm("Supprimer cet item de ta bibliothèque ?")) {
-        return;
-    }
-
-    data.items =
-        data.items.filter(item => item.id !== id);
-
-    saveData();
-    render();
-
-    showToast("Item supprimé.");
+function folderCard(f){
+  const n=data.items.filter(i=>i.folders.includes(f.id)).length;
+  return `<div class="folder"><div class="folder-color" style="background:${esc(f.color||"#8b5cf6")}"></div><div class="folder-top"><div class="folder-icon">${f.logo?`<img src="${esc(f.logo)}">`:`<div class="fallback">📁</div>`}</div><div><h3>${esc(f.name)}</h3><p>${n} item${n>1?"s":""}</p></div></div><div class="folder-actions"><button class="btn small" onclick="openFolder('${f.id}')">Ouvrir</button><button class="icon-btn" onclick="editFolder('${f.id}')">Modifier</button><button class="icon-btn" onclick="deleteFolder('${f.id}')">Supprimer</button></div></div>`;
 }
-
-
-function removeFromFolder(itemId, folderId) {
-
-    const item =
-        data.items.find(i => i.id === itemId);
-
-    if (!item) return;
-
-    item.folders =
-        item.folders.filter(id => id !== folderId);
-
-    saveData();
-
-    renderFolderItems();
-
-    showToast("Item retiré du dossier.");
+function renderFolders(){
+  const html=data.folders.length?`<div class="folder-grid">${data.folders.map(folderCard).join("")}</div>`:'<div class="empty">Aucun dossier pour le moment.</div>';
+  document.getElementById("foldersGrid").innerHTML=html;
+  document.getElementById("homeFolders").innerHTML=html;
 }
-
-
-function copyId(id) {
-
-    navigator.clipboard.writeText(id);
-
-    showToast("ID copié : " + id);
+function openFolder(id){currentFolderId=id;showPage("folder")}
+function renderFolder(){
+  const f=data.folders.find(x=>x.id===currentFolderId);if(!f){showPage("folders");return}
+  document.getElementById("folderTitle").textContent=f.name;document.getElementById("folderMeta").textContent=data.items.filter(i=>i.folders.includes(f.id)).length+" item(s)";
+  const arr=data.items.filter(i=>i.folders.includes(f.id));
+  document.getElementById("folderItems").innerHTML=arr.length?arr.map((x,i)=>itemHTML(x,i,f.id)).join(""):'<div class="empty" style="grid-column:1/-1">Ce dossier est vide.</div>';
 }
-
-
-function renderFolders() {
-
-    const search =
-        document.getElementById("search")
-            .value.toLowerCase();
-
-    const filtered =
-        data.folders.filter(folder =>
-            folder.name.toLowerCase()
-                .includes(search)
-        );
-
-    const html =
-        filtered.map(folder => {
-
-            const count =
-                data.items.filter(item =>
-                    item.folders.includes(folder.id)
-                ).length;
-
-            return `
-
-                <div class="folder">
-
-                    <div class="folder-icon">📁</div>
-
-                    <div class="folder-name">
-                        ${escapeHtml(folder.name)}
-                    </div>
-
-                    <div class="folder-count">
-                        ${count}
-                        ${count > 1 ? "items" : "item"}
-                    </div>
-
-                    <div class="folder-actions">
-
-                        <button
-                            class="btn small"
-                            onclick="openFolder('${folder.id}')">
-                            Ouvrir
-                        </button>
-
-                        <button
-                            class="btn small secondary"
-                            onclick="openFolderModal('${folder.id}')">
-                            ✏️
-                        </button>
-
-                        <button
-                            class="btn small danger"
-                            onclick="deleteFolder('${folder.id}')">
-                            🗑️
-                        </button>
-
-                    </div>
-
-                </div>
-            `;
-
-        }).join("");
-
-    const empty =
-        `
-        <div class="empty">
-            Aucun dossier pour le moment.<br><br>
-            Crée ton premier dossier avec le bouton
-            « Nouveau dossier ».
-        </div>
-        `;
-
-    document.getElementById("foldersGrid")
-        .innerHTML = html || empty;
-
-    document.getElementById("homeFolders")
-        .innerHTML = html || empty;
+function openFolderModal(id=null){
+  currentEditFolderId=id;
+  const f=id?data.folders.find(x=>x.id===id):null;
+  document.getElementById("folderModalTitle").textContent=f?"Modifier le dossier":"Nouveau dossier";
+  document.getElementById("folderName").value=f?.name||"";
+  document.getElementById("folderColor").value=f?.color||data.settings.accent||"#8b5cf6";
+  document.getElementById("folderLogo").value="";
+  document.getElementById("folderModal").classList.add("open");
 }
-
-
-function itemHTML(item, folderId = null) {
-
-    const menuId =
-        "menu-" + item.id + "-" + Math.random()
-            .toString(36)
-            .substring(2, 7);
-
-    return `
-
-        <div class="item">
-
-            <div class="item-image">
-
-                <img
-                    src="${thumbnail(item.id)}"
-                    alt="${escapeHtml(item.name)}"
-                    loading="lazy"
-                    onerror="this.style.display='none'"
-                >
-
-            </div>
-
-            <div class="more">
-
-                <button
-                    onclick="toggleMenu('${menuId}')">
-                    ⋯
-                </button>
-
-                <div
-                    id="${menuId}"
-                    class="menu">
-
-                    <button
-                        onclick="openAddModal('${item.id}')">
-                        📁 Ajouter à un dossier
-                    </button>
-
-                    <button
-                        onclick="copyId('${item.id}')">
-                        📋 Copier l'ID
-                    </button>
-
-                    <button
-                        onclick="window.open('${item.url}', '_blank')">
-                        ↗️ Ouvrir Roblox
-                    </button>
-
-                    ${
-                        folderId
-                        ?
-                        `<button
-                            onclick="removeFromFolder('${item.id}', '${folderId}')">
-                            ➖ Retirer du dossier
-                        </button>`
-                        :
-                        ""
-                    }
-
-                    <button
-                        onclick="deleteItem('${item.id}')">
-                        🗑️ Supprimer
-                    </button>
-
-                </div>
-
-            </div>
-
-            <div class="item-info">
-
-                <div class="item-name">
-                    ${escapeHtml(item.name)}
-                </div>
-
-                <div class="item-id">
-                    ID : ${item.id}
-                </div>
-
-                <div class="item-actions">
-
-                    <button
-                        class="btn small"
-                        onclick="window.open('${item.url}', '_blank')">
-                        Roblox
-                    </button>
-
-                    <button
-                        class="btn small secondary"
-                        onclick="openAddModal('${item.id}')">
-                        📁
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-    `;
+function editFolder(id){openFolderModal(id)}
+function closeFolderModal(){document.getElementById("folderModal").classList.remove("open")}
+async function saveFolder(){
+  const name=document.getElementById("folderName").value.trim();if(!name){toast("Donne un nom au dossier.");return}
+  const file=document.getElementById("folderLogo").files[0];
+  const finish=logo=>{
+    if(currentEditFolderId){const f=data.folders.find(x=>x.id===currentEditFolderId);f.name=name;f.color=document.getElementById("folderColor").value;if(logo!==undefined)f.logo=logo}
+    else data.folders.push({id:crypto.randomUUID?.()||Date.now().toString(36),name,color:document.getElementById("folderColor").value,logo:logo||"",createdAt:Date.now()});
+    saveData();closeFolderModal();render();toast("Dossier enregistré.");
+  };
+  if(file){const r=new FileReader();r.onload=()=>finish(r.result);r.readAsDataURL(file)}else finish(undefined);
 }
-
-
-function renderItems() {
-
-    const search =
-        document.getElementById("search")
-            .value.toLowerCase();
-
-    const filtered =
-        data.items.filter(item =>
-            item.id.includes(search) ||
-            item.name.toLowerCase()
-                .includes(search)
-        );
-
-    const html =
-        filtered.map(item =>
-            itemHTML(item)
-        ).join("");
-
-    document.getElementById("itemsGrid")
-        .innerHTML =
-        html ||
-        `
-        <div class="empty">
-            Aucun item trouvé.
-        </div>
-        `;
+function deleteFolder(id){if(!confirm("Supprimer ce dossier ? Les items resteront dans l’historique."))return;data.folders=data.folders.filter(f=>f.id!==id);data.items.forEach(i=>i.folders=i.folders.filter(x=>x!==id));saveData();if(currentFolderId===id)showPage("folders");else render()}
+function openAddModal(itemId){currentAddItemId=itemId;document.getElementById("addChecks").innerHTML=data.folders.length?data.folders.map(f=>{const item=data.items.find(i=>i.id===itemId);return `<label class="check"><input type="checkbox" value="${f.id}" class="add-folder" ${item?.folders.includes(f.id)?"checked":""}> ${esc(f.name)}</label>`}).join(""):'<div class="empty">Crée un dossier d’abord.</div>';document.getElementById("addModal").classList.add("open")}
+function closeAddModal(){document.getElementById("addModal").classList.remove("open")}
+function saveItemFolders(){const it=data.items.find(x=>x.id===currentAddItemId);if(it){it.folders=[...document.querySelectorAll(".add-folder:checked")].map(x=>x.value);saveData()}closeAddModal();render()}
+function toggleSelect(id,on){on?selected.add(id):selected.delete(id);render()}
+function toggleSelectAll(){const arr=filteredItems();const all=arr.length&&arr.every(x=>selected.has(x.id));arr.forEach(x=>all?selected.delete(x.id):selected.add(x.id));render()}
+function bulkFolder(){if(!selected.size){toast("Sélectionne au moins un item.");return}if(!data.folders.length){toast("Crée un dossier d’abord.");return}document.getElementById("bulkChecks").innerHTML=data.folders.map(f=>`<label class="check"><input type="checkbox" value="${f.id}" class="bulk-folder"> ${esc(f.name)}</label>`).join("");document.getElementById("bulkModal").classList.add("open")}
+function closeBulkModal(){document.getElementById("bulkModal").classList.remove("open")}
+function saveBulkFolders(){const ids=[...document.querySelectorAll(".bulk-folder:checked")].map(x=>x.value);data.items.filter(x=>selected.has(x.id)).forEach(x=>x.folders=[...new Set([...x.folders,...ids])]);saveData();closeBulkModal();toast("Sélection classée.");render()}
+function bulkDelete(){if(!selected.size){toast("Sélectionne au moins un item.");return}if(!confirm("Supprimer les "+selected.size+" items de l’historique ?"))return;data.items=data.items.filter(x=>!selected.has(x.id));selected.clear();saveData();render();toast("Historique mis à jour.")}
+function deleteItem(id){if(!confirm("Supprimer cet item de l’historique ?"))return;data.items=data.items.filter(x=>x.id!==id);selected.delete(id);saveData();render()}
+function removeFromFolder(itemId,folderId){const i=data.items.find(x=>x.id===itemId);if(i){i.folders=i.folders.filter(x=>x!==folderId);saveData();render()}}
+function toggleMenu(id){document.querySelectorAll(".menu.open").forEach(x=>x.classList.remove("open"));document.getElementById(id)?.classList.toggle("open")}
+document.addEventListener("click",e=>{if(!e.target.closest(".more"))document.querySelectorAll(".menu.open").forEach(x=>x.classList.remove("open"))});
+function saveProfileName(){data.settings.name=document.getElementById("profileName").value.trim();saveData();render();toast("Pseudo enregistré.")}
+function saveRobloxUser(){data.settings.robloxUsername=document.getElementById("robloxUsername").value.trim();saveData();toast("Pseudo Roblox enregistré.")}
+function setTheme(t){data.settings.theme=t;saveData();applySettings();render()}
+function setAccent(c){data.settings.accent=c;saveData();applySettings();render()}
+function renderPalette(){document.getElementById("palette").innerHTML=COLORS.map(c=>`<button class="swatch ${data.settings.accent===c?'active':''}" style="background:${c}" title="${c}" onclick="setAccent('${c}')"></button>`).join("")}
+async function openAvatarViewer(mode,itemId=null){
+  currentAvatarMode=mode;showPage("avatar");
+  document.getElementById("avatarTitle").textContent=mode==="SELF"?"Mon avatar":mode;
+  document.getElementById("avatarSub").textContent=itemId?"Prévisualisation de l’item : "+(data.items.find(x=>x.id===itemId)?.name||itemId):"Prévisualisation";
+  const box=document.getElementById("avatarPreview");box.innerHTML="";
+  if(mode==="SELF"){
+    const username=data.settings.robloxUsername;
+    if(!username){box.innerHTML='<div class="empty">Ajoute ton pseudo Roblox dans Paramètres pour afficher ton avatar.</div>';return}
+    try{
+      const ur=await fetch("https://users.roblox.com/v1/usernames/users",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({usernames:[username],excludeBannedUsers:true})});
+      const uj=await ur.json();const uid=uj.data?.[0]?.id;
+      if(!uid)throw new Error("user");
+      const tr=await fetch("https://thumbnails.roblox.com/v1/users/avatar?userIds="+uid+"&size=420x420&format=Png&isCircular=false");
+      const tj=await tr.json();const src=tj.data?.[0]?.imageUrl;
+      if(!src)throw new Error("thumb");
+      box.innerHTML=`<img src="${src}" alt="Avatar Roblox"><div class="avatar-label">@${esc(username)}</div>`;
+    }catch(e){box.innerHTML='<div class="empty">Impossible de récupérer cet avatar pour le moment.</div>'}
+  }else{
+    const emoji=mode==="R6"?"🧍":"🧍‍♂️";
+    box.innerHTML=`<div style="font-size:170px;line-height:1">${emoji}</div><div class="avatar-label">${mode} — aperçu du rig</div>`;
+  }
 }
-
-
-function renderFolderItems() {
-
-    if (!currentFolderId) return;
-
-    const search =
-        document.getElementById("search")
-            .value.toLowerCase();
-
-    const items =
-        data.items.filter(item =>
-            item.folders.includes(currentFolderId) &&
-            (
-                item.id.includes(search) ||
-                item.name.toLowerCase()
-                    .includes(search)
-            )
-        );
-
-    document.getElementById("folderItems")
-        .innerHTML =
-        items.map(item =>
-            itemHTML(item, currentFolderId)
-        ).join("") ||
-
-        `
-        <div class="empty">
-            Ce dossier est vide.<br><br>
-            Ajoute des items avec le bouton ⋯.
-        </div>
-        `;
+function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="rblx-outfit-viewer-backup.json";a.click();URL.revokeObjectURL(a.href)}
+function importData(file){if(!file)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!Array.isArray(d.items)||!Array.isArray(d.folders))throw new Error();data={...d,settings:{name:"",theme:"dark",accent:"#8b5cf6",robloxUsername:"",...(d.settings||{})}};saveData();selected.clear();applySettings();render();toast("Sauvegarde importée.")}catch(e){toast("Sauvegarde invalide.")}};r.readAsText(file)}
+function clearAllData(){if(!confirm("Effacer tout l’historique, les dossiers et les réglages ?"))return;localStorage.removeItem(STORAGE_KEY);data=loadData();selected.clear();applySettings();render();toast("Données effacées.")}
+function render(){
+  applySettings();
+  document.getElementById("greeting").textContent=data.settings.name?"Bonjour, "+data.settings.name+" !":"Bonjour !";
+  document.getElementById("profileName").value=data.settings.name||"";
+  document.getElementById("robloxUsername").value=data.settings.robloxUsername||"";
+  renderPalette();renderFilters();renderFolders();renderItems();renderFolder();document.getElementById("directFolderArea").innerHTML=directFolderHTML();
 }
-
-
-function render() {
-
-    renderFolders();
-    renderItems();
-
-    if (
-        document.getElementById("folderPage")
-            .classList.contains("active")
-    ) {
-        renderFolderItems();
-    }
-}
-
-
-function toggleMenu(id) {
-
-    document.querySelectorAll(".menu")
-        .forEach(menu => {
-
-            if (menu.id !== id) {
-                menu.classList.remove("open");
-            }
-
-        });
-
-    const menu =
-        document.getElementById(id);
-
-    if (menu) {
-        menu.classList.toggle("open");
-    }
-}
-
-
-document.addEventListener("click", function(event) {
-
-    if (!event.target.closest(".more")) {
-
-        document.querySelectorAll(".menu")
-            .forEach(menu =>
-                menu.classList.remove("open")
-            );
-
-    }
-
-});
-
-
-function escapeHtml(text) {
-
-    return String(text)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-
-render();
-
+setInterval(()=>render(),60000);
+applySettings();render();showPage("home");
 </script>
-
 </body>
 </html>
