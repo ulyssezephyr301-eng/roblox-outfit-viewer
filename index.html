@@ -49,6 +49,8 @@ select,input[type="text"]{background:var(--panel2);color:var(--text);border:1px 
 .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.setting{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:15px}.setting h3{margin:0 0 6px;font-size:14px}.setting p{font-size:12px;color:var(--muted);margin:0 0 12px}.notice{padding:11px 12px;border-radius:11px;background:color-mix(in srgb,var(--accent) 10%,var(--panel2));border:1px solid color-mix(in srgb,var(--accent) 35%,var(--border));font-size:12px;color:var(--muted)}
 .toast{position:fixed;right:18px;bottom:18px;z-index:100;background:var(--panel);border:1px solid var(--border);padding:12px 14px;border-radius:12px;box-shadow:var(--shadow);display:none}.toast.show{display:block}
 @media(max-width:800px){.header-inner{flex-wrap:wrap}.brand{min-width:auto}.search{order:3;flex-basis:100%}.settings-grid{grid-template-columns:1fr}}
+
+.viewer-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.viewer-toolbar .btn.active{background:var(--accent);color:#fff;border-color:transparent}.viewer-canvas{width:100%;height:min(68vh,720px);min-height:500px;border-radius:18px;overflow:hidden;background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--accent) 12%,transparent),transparent 45%),#08090d;position:relative}.viewer-canvas canvas{display:block;width:100%;height:100%}.viewer-loading{position:absolute;inset:0;display:grid;place-items:center;background:rgba(8,9,13,.78);backdrop-filter:blur(4px);z-index:5}.viewer-loading.hidden{display:none}.viewer-error{max-width:520px;text-align:center;padding:22px}.viewer-info{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}.viewer-badge{display:inline-flex;align-items:center;padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:var(--panel2);font-size:12px}.viewer-note{font-size:12px;color:var(--muted);line-height:1.5}.viewer-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.viewer-mini{height:260px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#090a0e;position:relative}.viewer-mini canvas{width:100%;height:100%}@media(max-width:850px){.viewer-two{grid-template-columns:1fr}.viewer-canvas{min-height:420px}}
 </style>
 </head>
 <body>
@@ -128,6 +130,7 @@ select,input[type="text"]{background:var(--panel2);color:var(--text);border:1px 
       <div class="setting"><h3>Couleur du site</h3><p>Elle change les boutons, accents et textes importants.</p><div id="palette" class="palette"></div></div>
       <div class="setting"><h3>Thème</h3><p>Choisis entre mode sombre et mode clair.</p><div class="row"><button class="btn" onclick="setTheme('dark')">Sombre</button><button class="btn" onclick="setTheme('light')">Clair</button></div></div>
       <div class="setting"><h3>Compte Roblox</h3><p>Tu peux renseigner ton pseudo Roblox pour afficher ton avatar actuel dans le mode « Mon avatar ».</p><input id="robloxUsername" type="text" placeholder="Pseudo Roblox" style="width:100%"><button class="btn primary small" style="margin-top:9px" onclick="saveRobloxUser()">Enregistrer</button><div class="notice" style="margin-top:10px">Cette version ne demande jamais ton mot de passe Roblox. Pour une vraie connexion OAuth, il faut une application Roblox enregistrée et un petit serveur sécurisé ; ce n'est pas sûr de mettre un secret OAuth dans GitHub Pages.</div></div>
+      <div class="setting"><h3>URL du backend 3D</h3><p>Colle ici l'URL de ton Cloudflare Worker. Elle sert uniquement à récupérer les modèles 3D Roblox sans exposer ta clé API.</p><input id="backendUrl" type="url" placeholder="https://rblx-outfit-viewer-api.ton-compte.workers.dev" style="width:100%"><button class="btn primary small" style="margin-top:9px" onclick="saveBackendUrl()">Enregistrer</button></div>
       <div class="setting"><h3>Données</h3><p>Ton historique, tes dossiers et tes réglages sont stockés dans le stockage local de ton navigateur. Ils ne sont pas automatiquement synchronisés entre appareils.</p><div class="row"><button class="btn small" onclick="exportData()">Exporter mes données</button><label class="btn small" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">Importer une sauvegarde<input id="backupFile" type="file" accept="application/json" style="display:none" onchange="importData(this.files[0])"></label><button class="btn small danger" onclick="clearAllData()">Tout effacer</button></div></div>
       <div class="setting"><h3>À propos</h3><p>RBLX Outfit Viewer est une interface personnelle. Le nom/pseudo saisi ici n'est utilisé que localement pour le message d'accueil.</p></div>
     </div>
@@ -143,10 +146,23 @@ select,input[type="text"]{background:var(--panel2);color:var(--text);border:1px 
   </section>
 
   <section id="page-avatar" style="display:none">
-    <div class="hero"><button class="btn small" onclick="showPage('items')">← Retour</button><h1 id="avatarTitle" style="margin-top:12px"></h1><p id="avatarSub"></p></div>
+    <div class="hero"><button class="btn small" onclick="showPage('items')">← Retour</button><h1 id="avatarTitle" style="margin-top:12px">Visualiseur 3D</h1><p id="avatarSub">Chargement…</p></div>
     <div class="card">
-      <div class="avatar-stage"><div class="avatar-preview" id="avatarPreview"></div></div>
-      <div class="notice" style="margin-top:12px">Le mode R6/R15 est une prévisualisation de rig. Le mode « Mon avatar » utilise l'avatar public actuel de ton compte. Une vraie cabine d'essayage qui applique n'importe quel UGC à un avatar Roblox nécessite une intégration Roblox plus poussée.</div>
+      <div class="viewer-toolbar">
+        <button id="vModeItem" class="btn small" onclick="window.viewerSetMode('ITEM')">Item seul</button>
+        <button id="vModeR6" class="btn small" onclick="window.viewerSetMode('R6')">R6</button>
+        <button id="vModeR15" class="btn small" onclick="window.viewerSetMode('R15')">R15</button>
+        <button id="vModeSelf" class="btn small" onclick="window.viewerSetMode('SELF')">Mon avatar</button>
+        <button class="btn small" onclick="window.viewerResetCamera()">Réinitialiser</button>
+      </div>
+      <div class="viewer-canvas" id="avatarPreview">
+        <div class="viewer-loading" id="viewerLoading"><div>Chargement du modèle 3D…</div></div>
+      </div>
+      <div class="viewer-info">
+        <div><span class="viewer-badge" id="viewerModeBadge">ITEM</span> <span class="viewer-badge" id="viewerItemBadge">Aucun item</span></div>
+        <div class="row"><button class="btn small" onclick="window.viewerPrev()">← Précédent</button><button class="btn small" onclick="window.viewerNext()">Suivant →</button></div>
+      </div>
+      <p class="viewer-note" style="margin-top:10px">Utilise la souris pour tourner l'avatar et la molette pour zoomer. Les modèles 3D Roblox sont récupérés via ton backend sécurisé. Les modes R6/R15 utilisent un mannequin 3D de démonstration ; le mode « Mon avatar » charge le vrai modèle 3D public de ton avatar. L'application ne demande jamais ton mot de passe Roblox.</p>
     </div>
   </section>
 </main>
@@ -194,8 +210,8 @@ let filterType="all";
 function loadData(){
   try{
     const d=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
-    return d&&Array.isArray(d.items)&&Array.isArray(d.folders)?d:{items:[],folders:[],settings:{name:"",theme:"dark",accent:"#8b5cf6",robloxUsername:""}};
-  }catch{return {items:[],folders:[],settings:{name:"",theme:"dark",accent:"#8b5cf6",robloxUsername:""}}}
+    return d&&Array.isArray(d.items)&&Array.isArray(d.folders)?d:{items:[],folders:[],settings:{name:"",theme:"dark",accent:"#8b5cf6",robloxUsername:"",backendUrl:""}};
+  }catch{return {items:[],folders:[],settings:{name:"",theme:"dark",accent:"#8b5cf6",robloxUsername:"",backendUrl:""}}}
 }
 function saveData(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
@@ -377,43 +393,150 @@ function toggleMenu(id){document.querySelectorAll(".menu.open").forEach(x=>x.cla
 document.addEventListener("click",e=>{if(!e.target.closest(".more"))document.querySelectorAll(".menu.open").forEach(x=>x.classList.remove("open"))});
 function saveProfileName(){data.settings.name=document.getElementById("profileName").value.trim();saveData();render();toast("Pseudo enregistré.")}
 function saveRobloxUser(){data.settings.robloxUsername=document.getElementById("robloxUsername").value.trim();saveData();toast("Pseudo Roblox enregistré.")}
+function saveBackendUrl(){data.settings.backendUrl=document.getElementById("backendUrl").value.trim().replace(/\/$/,"");saveData();toast("URL du backend enregistrée.")}
 function setTheme(t){data.settings.theme=t;saveData();applySettings();render()}
 function setAccent(c){data.settings.accent=c;saveData();applySettings();render()}
 function renderPalette(){document.getElementById("palette").innerHTML=COLORS.map(c=>`<button class="swatch ${data.settings.accent===c?'active':''}" style="background:${c}" title="${c}" onclick="setAccent('${c}')"></button>`).join("")}
 async function openAvatarViewer(mode,itemId=null){
-  currentAvatarMode=mode;showPage("avatar");
-  document.getElementById("avatarTitle").textContent=mode==="SELF"?"Mon avatar":mode;
-  document.getElementById("avatarSub").textContent=itemId?"Prévisualisation de l’item : "+(data.items.find(x=>x.id===itemId)?.name||itemId):"Prévisualisation";
-  const box=document.getElementById("avatarPreview");box.innerHTML="";
-  if(mode==="SELF"){
-    const username=data.settings.robloxUsername;
-    if(!username){box.innerHTML='<div class="empty">Ajoute ton pseudo Roblox dans Paramètres pour afficher ton avatar.</div>';return}
-    try{
-      const ur=await fetch("https://users.roblox.com/v1/usernames/users",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({usernames:[username],excludeBannedUsers:true})});
-      const uj=await ur.json();const uid=uj.data?.[0]?.id;
-      if(!uid)throw new Error("user");
-      const tr=await fetch("https://thumbnails.roblox.com/v1/users/avatar?userIds="+uid+"&size=420x420&format=Png&isCircular=false");
-      const tj=await tr.json();const src=tj.data?.[0]?.imageUrl;
-      if(!src)throw new Error("thumb");
-      box.innerHTML=`<img src="${src}" alt="Avatar Roblox"><div class="avatar-label">@${esc(username)}</div>`;
-    }catch(e){box.innerHTML='<div class="empty">Impossible de récupérer cet avatar pour le moment.</div>'}
-  }else{
-    const emoji=mode==="R6"?"🧍":"🧍‍♂️";
-    box.innerHTML=`<div style="font-size:170px;line-height:1">${emoji}</div><div class="avatar-label">${mode} — aperçu du rig</div>`;
-  }
+  currentAvatarMode=mode;
+  const chosen=itemId || data.items[0]?.id || null;
+  showPage("avatar");
+  document.getElementById("avatarTitle").textContent="Visualiseur 3D";
+  const it=data.items.find(x=>x.id===chosen);
+  document.getElementById("avatarSub").textContent=it?it.name:"Sélectionne un item depuis ton historique";
+  if(window.viewerOpen) window.viewerOpen(mode,chosen);
 }
+
 function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="rblx-outfit-viewer-backup.json";a.click();URL.revokeObjectURL(a.href)}
-function importData(file){if(!file)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!Array.isArray(d.items)||!Array.isArray(d.folders))throw new Error();data={...d,settings:{name:"",theme:"dark",accent:"#8b5cf6",robloxUsername:"",...(d.settings||{})}};saveData();selected.clear();applySettings();render();toast("Sauvegarde importée.")}catch(e){toast("Sauvegarde invalide.")}};r.readAsText(file)}
+function importData(file){if(!file)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!Array.isArray(d.items)||!Array.isArray(d.folders))throw new Error();data={...d,settings:{name:"",theme:"dark",accent:"#8b5cf6",robloxUsername:"",backendUrl:"",...(d.settings||{})}};saveData();selected.clear();applySettings();render();toast("Sauvegarde importée.")}catch(e){toast("Sauvegarde invalide.")}};r.readAsText(file)}
 function clearAllData(){if(!confirm("Effacer tout l’historique, les dossiers et les réglages ?"))return;localStorage.removeItem(STORAGE_KEY);data=loadData();selected.clear();applySettings();render();toast("Données effacées.")}
 function render(){
   applySettings();
   document.getElementById("greeting").textContent=data.settings.name?"Bonjour, "+data.settings.name+" !":"Bonjour !";
   document.getElementById("profileName").value=data.settings.name||"";
   document.getElementById("robloxUsername").value=data.settings.robloxUsername||"";
+  document.getElementById("backendUrl").value=data.settings.backendUrl||"";
   renderPalette();renderFilters();renderFolders();renderItems();renderFolder();document.getElementById("directFolderArea").innerHTML=directFolderHTML();
 }
 setInterval(()=>render(),60000);
 applySettings();render();showPage("home");
+</script>
+
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
+import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/loaders/OBJLoader.js";
+import { MTLLoader } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/loaders/MTLLoader.js";
+
+let scene=null, camera=null, renderer=null, controls=null, root=null;
+let viewerMode="ITEM", viewerItemId=null;
+
+function apiBase(){ return (data?.settings?.backendUrl || "").replace(/\/$/,""); }
+function el(id){ return document.getElementById(id); }
+function loading(on,msg="Chargement du modèle 3D…"){
+  const x=el("viewerLoading"); if(!x)return;
+  x.classList.toggle("hidden",!on);
+  if(on)x.firstElementChild.textContent=msg;
+}
+function clearRoot(){ if(root){ scene.remove(root); root.traverse(o=>{ if(o.geometry)o.geometry.dispose(); if(o.material){const m=Array.isArray(o.material)?o.material:[o.material];m.forEach(v=>v.dispose?.())}}); } root=new THREE.Group();scene.add(root); }
+function fitCamera(object){
+  const box=new THREE.Box3().setFromObject(object);
+  if(box.isEmpty())return;
+  const size=box.getSize(new THREE.Vector3()), center=box.getCenter(new THREE.Vector3());
+  const max=Math.max(size.x,size.y,size.z)||5;
+  camera.position.set(center.x+max*1.6,center.y+max*0.55,center.z+max*2.4);
+  camera.near=Math.max(0.01,max/100);camera.far=max*100;camera.updateProjectionMatrix();
+  controls.target.copy(center);controls.update();
+}
+function init(){
+  const host=el("avatarPreview");if(!host)return;
+  if(renderer){renderer.setSize(host.clientWidth,host.clientHeight,false);return;}
+  scene=new THREE.Scene();scene.background=new THREE.Color(0x08090d);
+  camera=new THREE.PerspectiveCamera(32,host.clientWidth/host.clientHeight,.01,10000);
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:false});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(host.clientWidth,host.clientHeight,false);renderer.outputColorSpace=THREE.SRGBColorSpace;
+  host.appendChild(renderer.domElement);
+  controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=.2;controls.maxDistance=1000;
+  const hemi=new THREE.HemisphereLight(0xffffff,0x202030,2.4);scene.add(hemi);
+  const key=new THREE.DirectionalLight(0xffffff,3);key.position.set(4,8,6);scene.add(key);
+  const fill=new THREE.DirectionalLight(0x8b5cf6,1.4);fill.position.set(-5,4,-4);scene.add(fill);
+  root=new THREE.Group();scene.add(root);
+  window.addEventListener("resize",()=>{if(!renderer)return;const w=host.clientWidth,h=host.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)});
+  renderer.setAnimationLoop(()=>{controls?.update();renderer?.render(scene,camera)});
+}
+function cube(parent, size, pos, material){const g=new THREE.BoxGeometry(...size);const m=new THREE.MeshStandardMaterial({color:material||0x9ca3af,roughness:.8});const o=new THREE.Mesh(g,m);o.position.set(...pos);parent.add(o);return o;}
+function makeR6(){
+  const g=new THREE.Group();const mat=0x9ca3af;
+  cube(g,[1.2,1.2,.8],[0,2.7,0],mat); // head
+  cube(g,[1.6,2,.8],[0,1.1,0],0x7d8797); // torso
+  cube(g,[.65,2,.8],[-1.15,1.1,0],mat);cube(g,[.65,2,.8],[1.15,1.1,0],mat);
+  cube(g,[.75,2,.85],[-.48,-.9,0],mat);cube(g,[.75,2,.85],[.48,-.9,0],mat);
+  return g;
+}
+function makeR15(){
+  const g=new THREE.Group();const mat=0x9ca3af;
+  cube(g,[1.15,1.15,.8],[0,3.0,0],mat);
+  cube(g,[1.15,.9,.75],[0,2.15,0],0x7d8797);cube(g,[1.5,1.05,.8],[0,1.25,0],0x7d8797);
+  cube(g,[.55,1.0,.7],[-1.0,1.65,0],mat);cube(g,[.5,1.0,.7],[-1.0,.65,0],mat);cube(g,[.55,.55,.7],[-1.0,.0,0],mat);
+  cube(g,[.55,1.0,.7],[1.0,1.65,0],mat);cube(g,[.5,1.0,.7],[1.0,.65,0],mat);cube(g,[.55,.55,.7],[1.0,.0,0],mat);
+  cube(g,[.75,1.15,.75],[-.48,.25,0],mat);cube(g,[.75,1.15,.75],[.48,.25,0],mat);cube(g,[.75,1.15,.75],[-.48,-.9,0],mat);cube(g,[.75,1.15,.75],[.48,-.9,0],mat);
+  return g;
+}
+async function loadModel(payload,mode){
+  const mtl=new MTLLoader();
+  const textureBase=apiBase();
+  const mtlText=payload.mtl.replaceAll("/api/cdn/",textureBase+"/api/cdn/");
+  const materials=mtl.parse(mtlText,"");
+  materials.preload();
+  const obj=new OBJLoader();obj.setMaterials(materials);
+  const model=obj.parse(payload.obj);
+  model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material.side=THREE.DoubleSide}});
+  return model;
+}
+async function fetch3D(kind,id){
+  const base=apiBase();if(!base)throw new Error("Configure d'abord l'URL du backend 3D dans Paramètres.");
+  const r=await fetch(`${base}/api/${kind}/${encodeURIComponent(id)}`);const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||`Erreur backend ${r.status}`);return j;
+}
+async function userIdFromUsername(username){
+  const base=apiBase();
+  if(base){const r=await fetch(`${base}/api/user/${encodeURIComponent(username)}`);const j=await r.json();if(!r.ok)throw new Error(j.error||"Utilisateur introuvable");return j.id;}
+  const r=await fetch("https://users.roblox.com/v1/usernames/users",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({usernames:[username],excludeBannedUsers:false})});
+  const j=await r.json();const u=j.data?.[0];if(!u)throw new Error("Utilisateur Roblox introuvable");return u.id;
+}
+async function renderViewer(){
+  init();clearRoot();loading(true);
+  el("viewerModeBadge").textContent=viewerMode==="SELF"?"MON AVATAR":viewerMode;
+  const item=data.items.find(x=>x.id===viewerItemId);
+  el("viewerItemBadge").textContent=item?`${item.name} • ID ${item.id}`:"Aucun item sélectionné";
+  document.querySelectorAll("#vModeItem,#vModeR6,#vModeR15,#vModeSelf").forEach(b=>b.classList.remove("active"));
+  el(viewerMode==="ITEM"?"vModeItem":viewerMode==="R6"?"vModeR6":viewerMode==="R15"?"vModeR15":"vModeSelf")?.classList.add("active");
+  try{
+    if(viewerMode==="ITEM"){
+      if(!item)throw new Error("Aucun item sélectionné.");
+      const model=await fetch3D("asset-3d",item.id);const obj=await loadModel(model);root.add(obj);fitCamera(obj);
+      el("avatarSub").textContent=`${item.name} — modèle 3D Roblox`;
+    }else if(viewerMode==="SELF"){
+      const username=data.settings.robloxUsername;if(!username)throw new Error("Ajoute ton pseudo Roblox dans Paramètres.");
+      const uid=await userIdFromUsername(username);const model=await fetch3D("avatar-3d",uid);const obj=await loadModel(model);root.add(obj);fitCamera(obj);
+      el("avatarSub").textContent=`@${username} — vrai avatar 3D Roblox`;
+    }else{
+      const rig=viewerMode==="R6"?makeR6():makeR15();root.add(rig);
+      if(item){
+        try{const asset=await fetch3D("asset-3d",item.id);const itemObj=await loadModel(asset);itemObj.scale.setScalar(0.65);itemObj.position.set(0,1.5,1.0);root.add(itemObj);}catch(e){console.warn("Item 3D non chargeable sur rig:",e)}
+      }
+      fitCamera(rig);el("avatarSub").textContent=item?`${item.name} — ${viewerMode} + aperçu 3D de l'item`:`Mannequin ${viewerMode} 3D`;
+    }
+  }catch(e){
+    const host=el("avatarPreview");const old=host.querySelector(".viewer-error");old?.remove();const d=document.createElement("div");d.className="viewer-error";d.innerHTML=`<h3>Impossible de charger le modèle</h3><p>${esc(e.message||"Erreur inconnue")}</p><p class="viewer-note">Vérifie l'URL du backend et la clé Roblox Open Cloud. Les endpoints 3D Roblox sont protégés.</p>`;host.appendChild(d);
+  }finally{loading(false)}
+}
+window.viewerOpen=(mode,itemId)=>{viewerMode=mode;viewerItemId=itemId||data.items[0]?.id||null;renderViewer()};
+window.viewerSetMode=(mode)=>{viewerMode=mode;renderViewer()};
+window.viewerResetCamera=()=>{if(root)fitCamera(root)};
+window.viewerPrev=()=>{if(!data.items.length)return;let i=data.items.findIndex(x=>x.id===viewerItemId);i=(i<=0?data.items.length-1:i-1);viewerItemId=data.items[i].id;renderViewer()};
+window.viewerNext=()=>{if(!data.items.length)return;let i=data.items.findIndex(x=>x.id===viewerItemId);i=(i<0||i>=data.items.length-1?0:i+1);viewerItemId=data.items[i].id;renderViewer()};
+window.__rblxViewerInit=()=>{init()};
 </script>
 </body>
 </html>
